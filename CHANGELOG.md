@@ -7,6 +7,12 @@ Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
 ## [Unreleased]
 
+## [0.1.0-beta.1] — 2026-05-08 — First Private Beta
+
+First tagged build of the inofficial Kyber Linux Port. Distributed as a
+self-installing AppImage to a closed group of testers; not for general
+release. Source for this tag is GPLv3 — see `LICENSE`.
+
 ### Added
 - `CHANGELOG.md` (this file) as the central change history for the Linux port.
 - **Self-installing AppImage** — first-run desktop integration without a
