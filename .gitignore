@@ -1,0 +1,27 @@
+# Build outputs — produced by tools/build-appimage.sh
+tools/KyberLinuxPort-x86_64.AppImage
+tools/KyberLinuxPort-x86_64.AppImage.bak-*
+tools/KyberLinuxPort.AppDir/
+tools/KyberLinuxPort.extracted/
+
+# Internal dev notes — not for distribution
+notes/
+
+# Top-level Maxima/ — separate clone of upstream Maxima used historically
+# for source builds; not referenced by the AppImage build pipeline (which
+# uses Kyber/{,CLI/}ThirdParty/Maxima/ via submodules).
+Maxima/
+
+# Backup directory created during pre-perf-fix snapshot
+backups/
+
+# OS / IDE cruft
+.DS_Store
+.idea/
+*.iml
+.vscode/
+
+# Build / test artifacts
+*.log
+*.bak
+.claude/

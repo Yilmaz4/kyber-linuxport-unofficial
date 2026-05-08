@@ -1,0 +1,4 @@
+[submodule "Kyber"]
+	path = Kyber
+	url = https://github.com/simonlinuxcraft/kyber.git
+	branch = ver/beta10
