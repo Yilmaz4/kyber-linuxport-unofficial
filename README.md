@@ -8,6 +8,16 @@ packaged as a self-installing AppImage.
 
 **Not affiliated** with the original Kyber team, EA, Lucasfilm, or Disney.
 
+---
+
+> **Latest pre-release** &nbsp;·&nbsp; [`v0.1.0-beta.1` — First Private Beta](https://github.com/simonlinuxcraft/kyber-linuxport-inofficial/releases/tag/v0.1.0-beta.1) &nbsp;·&nbsp; 2026-05-08
+>
+> AppImage download: [`KyberLinuxPort-x86_64.AppImage`](https://github.com/simonlinuxcraft/kyber-linuxport-inofficial/releases/download/v0.1.0-beta.1/KyberLinuxPort-x86_64.AppImage) &nbsp;·&nbsp; 220 MB
+>
+> See the [release notes](https://github.com/simonlinuxcraft/kyber-linuxport-inofficial/releases/tag/v0.1.0-beta.1) for what's in this build, known limitations, and the install steps.
+
+---
+
 ## Status
 
 Pre-release / private testing. The launcher boots, logs into Maxima via
