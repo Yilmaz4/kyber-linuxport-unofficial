@@ -10,11 +10,13 @@ packaged as a self-installing AppImage.
 
 ---
 
-> **Latest pre-release** &nbsp;·&nbsp; [`v0.1.0-beta.1` — First Private Beta](https://github.com/simonlinuxcraft/kyber-linuxport-inofficial/releases/tag/v0.1.0-beta.1) &nbsp;·&nbsp; 2026-05-08
+> **Latest pre-release** &nbsp;·&nbsp; [`v0.1.0-beta.2` — Locale Lock + Cold-Start + Bazzite/Fedora compat](https://github.com/simonlinuxcraft/kyber-linuxport-inofficial/releases/tag/v0.1.0-beta.2) &nbsp;·&nbsp; 2026-05-09
 >
-> AppImage download: [`KyberLinuxPort-x86_64.AppImage`](https://github.com/simonlinuxcraft/kyber-linuxport-inofficial/releases/download/v0.1.0-beta.1/KyberLinuxPort-x86_64.AppImage) &nbsp;·&nbsp; 220 MB
+> AppImage download: [`KyberLinuxPort-x86_64.AppImage`](https://github.com/simonlinuxcraft/kyber-linuxport-inofficial/releases/download/v0.1.0-beta.2/KyberLinuxPort-x86_64.AppImage) &nbsp;·&nbsp; 231 MB
 >
-> See the [release notes](https://github.com/simonlinuxcraft/kyber-linuxport-inofficial/releases/tag/v0.1.0-beta.1) for what's in this build, known limitations, and the install steps.
+> What's new since beta.1: BF2 "language not entitled" entitlement error fixed for non-English host locales, cold-start launch time down from ~87 s to ~22 s, AppImage now boots out-of-the-box on Bazzite / Fedora-atomic / Silverblue / Kinoite (no `libfuse2`-install thanks to the embedded type-2 runtime), launcher window comes back to the foreground after BF2 exits.
+>
+> See the [release notes](https://github.com/simonlinuxcraft/kyber-linuxport-inofficial/releases/tag/v0.1.0-beta.2) for the full per-component change list, known limitations, and the install steps.
 
 ---
 
@@ -56,28 +58,47 @@ those are the two submodules.
 
 ## Installation (end users)
 
-The AppImage runs on any glibc-based Linux ≥ Ubuntu 22.04 / Fedora 38 /
-Debian 12 / Arch / openSUSE Tumbleweed. Steps are the same everywhere
-once the runtime prerequisites are in place.
+The AppImage is statically self-contained as far as the AppImage
+runtime is concerned — no `libfuse2` install needed since beta.2,
+which embeds the [type-2 runtime](https://github.com/AppImage/type2-runtime)
+(probes FUSE3, falls back to FUSE2, auto-degrades to
+`--appimage-extract-and-run` when neither is available). Tested
+clean-boot on Ubuntu 22.04+ / Fedora 39+ / Bazzite / Silverblue /
+Kinoite / Arch / openSUSE Tumbleweed. Kernel ≥ 4.x is the only hard
+requirement.
 
 ### 1. Install runtime prerequisites
 
-The AppImage runtime needs **libfuse2** (Type 2 AppImages); the
-self-install dialog needs **zenity** or **kdialog**; `notify-send` is
-optional for the post-install notification.
+Only the self-install dialog needs anything beyond a baseline desktop
+install — it uses **zenity** or **kdialog** for the first-start
+confirmation, and optionally **notify-send** for a post-install
+notification. Skip this step if you are happy to install Kyber
+manually with `tools/install-appimage.sh` or you already have a
+zenity / kdialog / libnotify package on your system.
 
 | Distro | Command |
 |---|---|
-| **Ubuntu / Debian / Mint / Pop!_OS** | `sudo apt install libfuse2 zenity libnotify-bin` |
-| **Fedora / RHEL / Nobara** | `sudo dnf install fuse-libs zenity libnotify` |
-| **Arch / Manjaro / EndeavourOS** | `sudo pacman -S fuse2 zenity libnotify` |
-| **openSUSE Tumbleweed / Leap** | `sudo zypper install fuse zenity libnotify-tools` |
-| **Bazzite / Silverblue (rpm-ostree)** | `rpm-ostree install fuse zenity libnotify` (then reboot) |
+| **Ubuntu / Debian / Mint / Pop!_OS** | `sudo apt install zenity libnotify-bin` |
+| **Fedora / RHEL / Nobara** | `sudo dnf install zenity libnotify` |
+| **Arch / Manjaro / EndeavourOS** | `sudo pacman -S zenity libnotify` |
+| **openSUSE Tumbleweed / Leap** | `sudo zypper install zenity libnotify-tools` |
+| **Bazzite / Silverblue / Kinoite** | already provides zenity + libnotify in the base image; nothing to install |
 
 Battlefront II itself must already be installed in a Wine prefix —
 the launcher does not bootstrap Wine. **Lutris** is the tested path
 (`lutris -i kyber-setup.yml`); **Steam-Proton** and **Bottles** also
 work but are less tested.
+
+#### Storage placement caveats
+
+Two filesystem-level rules that catch most "AppImage won't start" reports:
+
+- Place the AppImage on a Linux-native filesystem (ext4 / btrfs / xfs / f2fs).
+  NTFS and exFAT mounts are typically `noexec` by default, which the
+  kernel enforces at `execve()` regardless of the file mode bits.
+- On systems where `/tmp` is a `tmpfs` smaller than ~2 GB the
+  extract-and-run fallback (used when FUSE is unavailable) can run out
+  of space. Workaround: `TMPDIR=$HOME/.cache/kyber-tmp ./AppImage`.
 
 ### 2. Download and run
 
