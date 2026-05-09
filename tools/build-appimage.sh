@@ -212,7 +212,32 @@ echo "==> Restoring Flutter RUNPATH"
 patchelf --set-rpath '$ORIGIN/lib' "$APPDIR/usr/bin/kyber_launcher"
 
 echo "==> Building AppImage"
-ARCH=x86_64 ./appimagetool-x86_64.AppImage --no-appstream "$APPDIR" "$OUTPUT"
+# AppImage runtime selection.
+#
+# We embed the modern type-2 runtime from AppImage/type2-runtime instead
+# of letting `appimagetool` use its default runtime. The default is FUSE2-
+# only and silently fails to start on FUSE3-only distros (Bazzite,
+# Fedora Silverblue, Kinoite — all immutable Fedora-based, where libfuse2
+# cannot be installed). The type-2 runtime is statically PIE-linked,
+# probes FUSE3 first, falls back to FUSE2, and auto-degrades to
+# `--appimage-extract-and-run` when neither is available.
+#
+# Net effect: a single AppImage that boots out-of-the-box on Ubuntu,
+# Fedora (regular + atomic / Silverblue / Bazzite), Arch and derivatives.
+#
+# When the runtime file is missing we fall back to the bundled default
+# so the build does not silently regress on a fresh checkout.
+RUNTIME_FILE="$TOOLS/type2-runtime-x86_64"
+RUNTIME_ARGS=()
+if [[ -f "$RUNTIME_FILE" ]]; then
+    echo "    Using type-2 runtime from $RUNTIME_FILE"
+    RUNTIME_ARGS+=( --runtime-file "$RUNTIME_FILE" )
+else
+    echo "    WARNING: $RUNTIME_FILE missing — falling back to default FUSE2 runtime."
+    echo "    Built AppImage will NOT start on Bazzite / Silverblue / Fedora atomic."
+    echo "    Download via: gh release download continuous --repo AppImage/type2-runtime --pattern 'runtime-x86_64' --output tools/type2-runtime-x86_64"
+fi
+ARCH=x86_64 ./appimagetool-x86_64.AppImage --no-appstream "${RUNTIME_ARGS[@]}" "$APPDIR" "$OUTPUT"
 
 echo
 echo "==> Done"

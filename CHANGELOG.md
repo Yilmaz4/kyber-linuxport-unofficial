@@ -7,6 +7,173 @@ Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
 ## [Unreleased]
 
+### Added
+- **Steam game-path auto-detection** — `read_game_path()` is now
+  implemented for Linux in the bundled Maxima patch set. The previous
+  `todo!()` stub caused the launcher's `get_game_dir(slug)` FFI call to
+  return an empty string on Linux, blocking any feature that needed the
+  installed BF2 directory. The new implementation maps known BF2 slugs
+  (`bf2`, `swbf2`, `starwarsbattlefront2`, `STAR WARS Battlefront II`,
+  …) to Steam app id `1237950`, walks the Steam library candidates in
+  the same order as `linux_setup.rs` (with `STEAM_LIBRARY_ROOT` env
+  override and Flatpak Steam added), parses `libraryfolders.vdf` and
+  the per-game `appmanifest_<id>.acf` with a small inline regex parser
+  (no new Cargo dependency), and returns
+  `<library>/steamapps/common/<installdir>/`. macOS keeps a separate
+  `todo!()` stub. Inline unit tests cover the slug map and both
+  parsers.
+- **AppImage container self-update (configurable endpoint)** — new
+  `AppImageUpdateService` updates the AppImage file itself, not just
+  the in-app module bundle. Runs only when launched from an AppImage
+  (`$APPIMAGE` env present) and an update endpoint is configured via
+  `KYBER_UPDATE_URL` (no default — Source repo is private, so the
+  classic `gh-releases-zsync` flow does not apply yet). Manifest format
+  is JSON `{version, download_url, sha256}`. The service downloads to
+  `${APPIMAGE}.new.<tag>`, verifies SHA-256, `chmod 0755`, atomic
+  renames over the running file, and exec's into it. Version comparison
+  uses semver via the existing `version` package — bare string equality
+  was insufficient because `PackageInfo.buildNumber` is undefined on
+  Linux/AppImage builds and would have either masked legitimate updates
+  or triggered them on every boot. `$APPIMAGE` is canonicalised through
+  `resolveSymbolicLinksSync()` so the rename hits the real file even
+  when the user invokes the AppImage via a symlink. Before exec'ing the
+  new binary the service verifies it is executable (`test -x`) — on
+  `noexec` mounts (`~/Applications/` on a data partition) chmod sets
+  the inode bit but `execve()` still fails, so the running launcher
+  aborts the restart and survives instead of leaving the user with no
+  process. Original `Platform.executableArguments` are forwarded to the
+  new instance so `--server` and protocol-handler invocations
+  (`kyber qrc://...`) survive the restart. Wired through
+  `injection_container.dart` and called from
+  `app_initialization_service.dart` ahead of the existing in-app
+  module update check, so a freshly downloaded image hands off to the
+  new launcher version on first boot. The legacy
+  `LinuxSelfUpdateService` keeps handling in-app module updates and is
+  not affected by this change.
+
+### Fixed
+- **BF2 "language not entitled" entitlement error** — the layered Wine
+  registry locale-lock (`maxima-lib/src/unix/wine.rs`) now writes
+  `HKCU\Environment\LANG`/`LC_ALL=en_US.UTF-8`, propagates an explicit
+  English locale on the `maxima-bootstrap` spawn (`core/launch.rs`),
+  and re-applies the four locale-critical keys
+  (`HKCU\Control Panel\International\{Locale,LocaleName,sLanguage}`,
+  `HKCU\Software\Valve\Steam\language`) just-in-time before the BF2
+  spawn. A new `verify_locale_is_english()` probe queries the live
+  registry values via `reg query` so a regression now leaves a paper
+  trail in the launcher log instead of being a silent prefix-state
+  mystery. Critical-failure entries (BF2 catalog, Origin Games,
+  Control Panel\International, Valve\Steam) abort the launch hard
+  with a typed error rather than `Ok(())` after a swallowed warning.
+  Verified live: all four critical keys read back as English at spawn
+  time on a German-locale host (`LANG=de_DE.UTF-8`).
+
+### Performance
+- **Verify-first locale skip** — `setup_wine_registry()` and the
+  pre-spawn JIT lock now run a four-key `reg query` pre-flight via
+  `verify_locale_is_english()` and short-circuit both write paths
+  when the prefix is already in the desired English state. On warm
+  launches (the common case once a previous launch succeeded) this
+  avoids 19 sequential `reg add` calls through umu-run +
+  pressure-vessel — measured launch overhead drops from ~73s to ~24s
+  (-49s, -67%). Cold launches and tampered prefixes fall through to
+  the full write path unchanged. Each individual umu-run call is
+  ~3s of pressure-vessel container spawn dominated; the optimisation
+  works by removing redundant calls, not by changing how each call
+  works.
+- **Pre-spawn verify removed** — the four-key `reg query` probe in
+  `Kyber/ThirdParty/Maxima/maxima-lib/src/core/launch.rs` (between
+  `setup_wine_registry()` and the bootstrap spawn) was a strict
+  duplicate of the pre-flight verify already performed at the top of
+  `setup_wine_registry()`, with license-fetch / cloud-sync between the
+  two not touching the Wine registry. Removing it saves ~14s of
+  umu-run round-trips on every game launch (warm and cold). If the
+  language-entitlement regression ever returns the recovery path is a
+  single-key probe of `HKCU\Software\Valve\Steam\language` (the only
+  key Steam itself sometimes rewrites between launches) — see the
+  comment block at the spawn site for the recipe.
+- **Launcher window refocus on game exit** — `IngameViewCubit.unloadServer()`
+  in `lib/features/server_browser/providers/ingame_view_cubit.dart`
+  now calls `windowManager.restore() + .show() + .focus()` after the
+  LSX stream completes. BF2 takes the foreground when it launches and
+  on a typical Linux DE the launcher window stays minimised in the
+  task bar after the game exits — the user landed on the desktop
+  instead of back in the launcher. Refocusing is gated to Linux and
+  Windows; macOS retains its own window-management semantics. Errors
+  from `windowManager` are swallowed and logged at warning level so a
+  flaky Wayland implementation cannot block the cubit's normal
+  cleanup path.
+
+- **Cold-start direct-file registry patch** —
+  `Kyber/Launcher/rust/src/linux_setup.rs` now ships
+  `patch_wine_registry_for_bf2()` which writes the BF2 locale-critical
+  keys (`HKCU\Control Panel\International`, `HKCU\Software\Valve\Steam`,
+  `HKCU\Environment`, `HKLM\Software\Electronic Arts\EA Desktop`,
+  `HKLM\Software\Origin`, `HKLM\Software\Origin Games\1035052`,
+  `HKLM\Software\WoW6432Node\Origin Games\1035052`) directly into the
+  Wine prefix's `user.reg` / `system.reg` files via in-place text
+  edits. Replaces (or appends) keys, replaces (or appends) entire
+  sections — runs in &lt;100 ms vs. the ~45s the equivalent 15
+  sequential `reg add` calls through umu-run + pressure-vessel cost
+  in `setup_wine_registry()`. Combined with the verify-first skip
+  above, a cold launch on an existing Wine prefix drops from ~87s
+  to ~13s (-74s, -85%). The patch is invoked from `init_app()` and
+  again from `start_game()` (covers the case where the prefix was
+  freshly created by the bootstrap between the two calls). It
+  detects a running `wineserver` via `pgrep -x wineserver` and
+  skips itself when active — Wine serialises the registry on
+  shutdown and would otherwise clobber our direct writes. On a
+  brand-new Wine prefix where the registry files do not exist yet
+  the patch is a no-op and the existing `setup_wine_registry()`
+  umu-run path runs full as before; the cold-start regression is
+  bounded to the very first launch on a fresh install.
+
+### AppImage pipeline
+- **Type-2 runtime for Bazzite / Fedora-atomic / Silverblue / Kinoite
+  out-of-the-box support** — `tools/build-appimage.sh` now embeds the
+  type-2 runtime from `AppImage/type2-runtime` (commit `3d17002`,
+  `tools/type2-runtime-x86_64`, ~944 KB, statically PIE-musl-linked) via
+  `appimagetool --runtime-file`. The default `appimagetool` runtime is
+  FUSE2-only and silently fails to mount on immutable Fedora-based
+  distributions where `libfuse2` is not installable. The type-2 runtime
+  probes FUSE3 first, falls back to FUSE2, and auto-degrades to
+  `--appimage-extract-and-run` when neither is available. Net effect:
+  one AppImage that boots out-of-the-box on Ubuntu (incl. 24.04 with
+  AppArmor caveats), Fedora (Workstation + Silverblue + Kinoite + Bazzite),
+  Arch + derivatives. The runtime is musl-statically linked so glibc
+  version is irrelevant — only kernel ≥ 4.x is required.
+  - `xxd` of the built AppImage now shows `AI\x02` at byte offset 8
+    (Type-2 magic), and `--appimage-version` reports the type-2 commit
+    hash.
+  - Build falls back to the bundled FUSE2-default runtime with a clear
+    warning when `tools/type2-runtime-x86_64` is missing on a fresh
+    checkout.
+  - Verified on the maintainer's Ubuntu box via the `APPIMAGE_EXTRACT_AND_RUN=1`
+    proxy test that simulates the no-FUSE path.
+  - Known limitations (documentation only — no code fix possible):
+    `tmpfs` on `/tmp` smaller than 2 GB will refuse the extract-mode
+    fallback (workaround: `TMPDIR=$HOME/.cache/kyber-tmp ./AppImage`),
+    and AppImages on NTFS / exFAT partitions hit `noexec` mounts
+    (workaround: keep on the home filesystem).
+
+### Security
+- **Self-update hardening: mandatory SHA-256, path-traversal block,
+  atomic lock** — three security-relevant fixes in
+  `LinuxSelfUpdateService`:
+  - The server's SHA-256 hash is now mandatory; tarballs without an
+    advertised hash are rejected instead of being accepted with a
+    warning. Combined with the previous behaviour this had been an
+    unverified-download path that could chain into the issue below.
+  - `_extractTarGz` now validates every archive entry before delegating
+    to `extractArchiveToDisk`. Entries whose canonicalised target
+    escapes the staging directory (`../../etc/...`) are refused, and
+    symbolic links inside the archive are refused outright.
+  - The flock acquired in `claim()` switched from
+    `FileLock.blockingExclusive` to `FileLock.exclusive` (non-blocking).
+    Two concurrent self-updates now fail fast on the second instance
+    instead of serialising launcher boots behind an in-progress
+    multi-minute download.
+
 ## [0.1.0-beta.1] — 2026-05-08 — First Private Beta
 
 First tagged build of the inofficial Kyber Linux Port. Distributed as a
