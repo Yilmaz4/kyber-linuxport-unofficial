@@ -6,7 +6,13 @@ Inofficial Linux build of the [Kyber](https://kyber.gg) mod launcher for
 and [ArmchairDevelopers/Maxima](https://github.com/ArmchairDevelopers/Maxima),
 packaged as a self-installing AppImage.
 
-**Not affiliated** with the original Kyber team, EA, Lucasfilm, or Disney.
+> **Inofficial / community port.** This project is **not** developed,
+> endorsed, or supported by the [Kyber team](https://kyber.gg),
+> ArmchairDevelopers, EA, Lucasfilm, or Disney. If you are on Windows
+> please use the [official Kyber launcher](https://kyber.gg) — this
+> repository only exists because the upstream launcher does not ship a
+> Linux build. **Use at your own risk.** Bugs in this Linux port should
+> be reported here, not to the upstream Kyber team.
 
 ---
 
@@ -201,8 +207,13 @@ See [`NOTICE.md`](NOTICE.md) for the full list of third-party code,
 fonts, and binaries bundled into the AppImage, with their licenses and
 provenance.
 
-## Contributing
+## Contributing / Reporting issues
 
-Currently a closed pre-release. If you have access to this repository
-you were added explicitly for testing — please report issues you hit
-either via GitHub Issues or directly to the maintainer.
+This is a small one-maintainer effort. Bug reports for the **Linux
+port specifically** are welcome via GitHub Issues on this repository.
+
+Please **do not** report Linux-port issues to the upstream Kyber team
+or the Kyber Discord — they are not responsible for this port. If you
+are unsure whether a bug is Linux-specific, file it here first; if it
+turns out to reproduce on Windows too, I will point you at the
+upstream tracker.
