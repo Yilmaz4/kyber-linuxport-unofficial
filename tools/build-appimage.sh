@@ -22,7 +22,7 @@ LAUNCHER_BUNDLE="$REPO_ROOT/Kyber/Launcher/build/linux/x64/release/bundle"
 APPDIR="$TOOLS/KyberLinuxPort.AppDir"
 OUTPUT="$TOOLS/KyberLinuxPort-x86_64.AppImage"
 
-SOURCE_URL="https://github.com/simonlinuxcraft/kyber-linuxport-inofficial"
+SOURCE_URL="https://github.com/simonlinuxcraft/kyber-linuxport-unofficial"
 
 if [ ! -x "$LAUNCHER_BUNDLE/kyber_launcher" ]; then
   echo "ERROR: $LAUNCHER_BUNDLE/kyber_launcher not found." >&2

@@ -1,4 +1,4 @@
-# Kyber Linux Port (inofficial)
+# Kyber Linux Port (unofficial)
 
 Unofficial Linux build of the [Kyber](https://kyber.gg) mod launcher for
 Star Wars: Battlefront II (2017). The upstream launcher is Windows only,
@@ -14,9 +14,9 @@ not to upstream Kyber.
 
 ## Latest release
 
-[v0.1.0-beta.2](https://github.com/simonlinuxcraft/kyber-linuxport-inofficial/releases/tag/v0.1.0-beta.2)
+[v0.1.0-beta.2](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.2)
 from 2026-05-09. Grab
-[`KyberLinuxPort-x86_64.AppImage`](https://github.com/simonlinuxcraft/kyber-linuxport-inofficial/releases/download/v0.1.0-beta.2/KyberLinuxPort-x86_64.AppImage)
+[`KyberLinuxPort-x86_64.AppImage`](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/download/v0.1.0-beta.2/KyberLinuxPort-x86_64.AppImage)
 (231 MB).
 
 Highlights since beta.1: BF2 entitlement error on non-English locales is
@@ -50,8 +50,8 @@ Flutter (master channel), Rust stable, GTK 3 dev packages, patchelf,
 librsvg dev tooling.
 
 ```bash
-git clone --recurse-submodules https://github.com/simonlinuxcraft/kyber-linuxport-inofficial.git
-cd kyber-linuxport-inofficial/Kyber/Launcher
+git clone --recurse-submodules https://github.com/simonlinuxcraft/kyber-linuxport-unofficial.git
+cd kyber-linuxport-unofficial/Kyber/Launcher
 flutter build linux --release
 cd ../..
 tools/build-appimage.sh

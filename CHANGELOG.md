@@ -5,7 +5,39 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
-## [Unreleased]
+## [0.1.0-beta.3] — 2026-05-17 — Fresh-Prefix BF2 Detection Fix
+
+Quick follow-up release because CachyOS testers (and anyone with a
+fresh-out-of-the-box Steam-Proton install) were hitting a "GAME NOT
+FOUND" dialog even though BF2 was clearly installed and the Proton
+prefix was sitting right there.
+
+### Fixed
+
+- Launcher now writes the `Software\EA Games\STAR WARS Battlefront II`
+  Wine registry section itself on every game launch, instead of relying
+  on the EA installer having run at some point. On Linux, Steam-Proton
+  never runs the EA installer, so on a clean prefix that registry key
+  simply does not exist, and Maxima's `is_installed()` check fails. The
+  install directory is resolved from Steam's library metadata
+  (`read_game_path("bf2")`), formatted as a Wine `Z:`-path, and written
+  to both the regular and `WoW6432Node` versions of the key. Behaviour
+  for users with an already-existing entry is unchanged.
+- A few diagnostic loglines that were silently swallowed now actually
+  show up at `WARN` level when the Steam-library lookup can't find BF2
+  — useful if your setup needs `STEAM_LIBRARY_ROOT` to point at a
+  non-default library path.
+
+### Internal
+
+- README rewritten in a less corporate tone, with the install/build
+  sections trimmed down to what actually matters. AI-flavoured comments
+  in `linux_setup.rs` and the Maxima registry helpers got cleaned up
+  in the same pass.
+- Spelling pass: "unofficial" instead of the older "inofficial"
+  everywhere in the source tree (README, in-app strings, build scripts).
+
+## [0.1.0-beta.2] — 2026-05-09 — Locale Lock, Cold-Start, Bazzite/Fedora Compat
 
 ### Added
 - **Steam game-path auto-detection** — `read_game_path()` is now
@@ -176,7 +208,7 @@ Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
 ## [0.1.0-beta.1] — 2026-05-08 — First Private Beta
 
-First tagged build of the inofficial Kyber Linux Port. Distributed as a
+First tagged build of the unofficial Kyber Linux Port. Distributed as a
 self-installing AppImage to a closed group of testers; not for general
 release. Source for this tag is GPLv3 — see `LICENSE`.
 
@@ -296,4 +328,4 @@ release. Source for this tag is GPLv3 — see `LICENSE`.
 
 ---
 
-[Unreleased]: https://github.com/simonlinuxcraft/kyber-linuxport-inofficial/compare/HEAD...HEAD
+[Unreleased]: https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/compare/HEAD...HEAD
