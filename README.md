@@ -14,14 +14,16 @@ not to upstream Kyber.
 
 ## Latest release
 
-[v0.1.0-beta.2](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.2)
-from 2026-05-09. Grab
-[`KyberLinuxPort-x86_64.AppImage`](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/download/v0.1.0-beta.2/KyberLinuxPort-x86_64.AppImage)
-(231 MB).
+[v0.1.0-beta.3](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.3)
+from 2026-05-17. Grab
+[`KyberLinuxPort-x86_64.AppImage`](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/download/v0.1.0-beta.3/KyberLinuxPort-x86_64.AppImage)
+(221 MB).
 
-Highlights since beta.1: BF2 entitlement error on non-English locales is
-fixed, cold start dropped from around 87 s to 22 s, AppImage boots on
-Fedora-atomic distros without needing libfuse2.
+What's new since beta.2: fresh Steam-Proton prefixes no longer hit
+"GAME NOT FOUND" — the launcher now writes the missing EA Games
+registry key itself on every game launch. Diagnostic logs upgraded so
+unusual Steam-library paths are easier to spot. Repo renamed from
+`kyber-linuxport-inofficial` to `-unofficial` (old URLs still redirect).
 
 ## Install
 
