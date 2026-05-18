@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 simonlinuxcraft
 #
-# build-appimage.sh — Bundle the Flutter Linux release build into a
+# build-appimage.sh - Bundle the Flutter Linux release build into a
 # self-contained AppImage for the Kyber Linux Port.
 #
 # Prerequisites:
@@ -44,7 +44,7 @@ cp "$REPO_ROOT/Kyber/LICENSE" "$APPDIR/usr/share/doc/kyber-linux/LICENSE"
 cp "$REPO_ROOT/Kyber/NOTICE.md" "$APPDIR/usr/share/doc/kyber-linux/NOTICE.md"
 cp "$REPO_ROOT/CHANGELOG.md" "$APPDIR/usr/share/doc/kyber-linux/CHANGELOG.md"
 cat > "$APPDIR/usr/share/doc/kyber-linux/source-url.txt" <<EOF
-Kyber Linux Port — Corresponding Source (GPLv3 §6(d))
+Kyber Linux Port - Corresponding Source (GPLv3 §6(d))
 
 The full corresponding source code for this AppImage is available at:
 
@@ -122,7 +122,7 @@ echo "==> Patching GTK AppRun hook with runtime loaders.cache regen"
 # linuxdeploy regenerates apprun-hooks/linuxdeploy-plugin-gtk.sh on every
 # run, dropping any manual edits. The default hook ships a loaders.cache
 # with relative module names ("libpixbufloader-svg.so"), which fails to
-# resolve at runtime — GTK then aborts when it tries to render a fallback
+# resolve at runtime - GTK then aborts when it tries to render a fallback
 # image-missing.svg from a system icon theme (e.g. Papirus on Mint).
 # Append a runtime regen block guarded by a sentinel so it survives
 # rebuilds (linuxdeploy's freshly-written hook lacks the sentinel, so the
@@ -131,7 +131,7 @@ GTK_HOOK="$APPDIR/apprun-hooks/linuxdeploy-plugin-gtk.sh"
 if [ -f "$GTK_HOOK" ] && ! grep -q "KYBER_PIXBUF_LOADERS_RUNTIME" "$GTK_HOOK"; then
 cat >> "$GTK_HOOK" <<'HOOKEOF'
 
-# KYBER_PIXBUF_LOADERS_RUNTIME — regenerate loaders.cache with absolute
+# KYBER_PIXBUF_LOADERS_RUNTIME - regenerate loaders.cache with absolute
 # paths into a writable tmpdir; the AppDir's bundled cache has relative
 # module names which GdkPixbuf cannot resolve at runtime.
 _kyber_gdk_query="$APPDIR/usr/lib/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders"
@@ -154,7 +154,7 @@ echo "==> Bundling SVG pixbuf loader (linuxdeploy-plugin-gtk skips it)"
 # crashes the launcher with "Unable to load image-loading module:
 # libpixbufloader-svg.so". Bundle the loader, its deps, and the query-loaders
 # binary (needed to regenerate loaders.cache at runtime with the correct
-# absolute FUSE mount path — loaders.cache paths must be absolute).
+# absolute FUSE mount path - loaders.cache paths must be absolute).
 SYS_LOADERS=/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders
 GDK_QUERY_LOADERS=/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders
 APPDIR_LOADERS="$APPDIR/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders"
@@ -170,7 +170,7 @@ fi
 
 # Bundle gdk-pixbuf-query-loaders so the AppRun hook can regenerate
 # loaders.cache at startup with the real $APPDIR (= FUSE mount point).
-# GDK-Pixbuf requires absolute paths in loaders.cache — relative paths
+# GDK-Pixbuf requires absolute paths in loaders.cache - relative paths
 # silently fail because the library prefixes them with the process cwd,
 # not with the FUSE mount root. The FUSE mount path is only known at
 # runtime, so the cache must be written then, not at build time.
@@ -255,7 +255,7 @@ echo "==> Building AppImage"
 # We embed the modern type-2 runtime from AppImage/type2-runtime instead
 # of letting `appimagetool` use its default runtime. The default is FUSE2-
 # only and silently fails to start on FUSE3-only distros (Bazzite,
-# Fedora Silverblue, Kinoite — all immutable Fedora-based, where libfuse2
+# Fedora Silverblue, Kinoite - all immutable Fedora-based, where libfuse2
 # cannot be installed). The type-2 runtime is statically PIE-linked,
 # probes FUSE3 first, falls back to FUSE2, and auto-degrades to
 # `--appimage-extract-and-run` when neither is available.
@@ -271,7 +271,7 @@ if [[ -f "$RUNTIME_FILE" ]]; then
     echo "    Using type-2 runtime from $RUNTIME_FILE"
     RUNTIME_ARGS+=( --runtime-file "$RUNTIME_FILE" )
 else
-    echo "    WARNING: $RUNTIME_FILE missing — falling back to default FUSE2 runtime."
+    echo "    WARNING: $RUNTIME_FILE missing - falling back to default FUSE2 runtime."
     echo "    Built AppImage will NOT start on Bazzite / Silverblue / Fedora atomic."
     echo "    Download via: gh release download continuous --repo AppImage/type2-runtime --pattern 'runtime-x86_64' --output tools/type2-runtime-x86_64"
 fi

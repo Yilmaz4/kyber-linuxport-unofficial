@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 simonlinuxcraft
 #
-# kyber-self-install.sh — AppRun hook that registers desktop integration on
+# kyber-self-install.sh - AppRun hook that registers desktop integration on
 # first start and refreshes it when the AppImage version changes.
 #
 # Sourced by AppRun BEFORE linuxdeploy-plugin-gtk.sh, so dialog tools
@@ -40,7 +40,7 @@ _kyber_self_install_main() {
         return 0
     fi
 
-    # User previously declined for this exact AppImage — don't pester.
+    # User previously declined for this exact AppImage - don't pester.
     if [ -f "$declined_marker" ] && [ "$(cat "$declined_marker" 2>/dev/null)" = "$current_id" ]; then
         return 0
     fi
@@ -48,7 +48,7 @@ _kyber_self_install_main() {
     local is_update=0
     [ -f "$marker" ] && is_update=1
 
-    # Confirm dialog — only on first install, not on version updates
+    # Confirm dialog - only on first install, not on version updates
     # (updates are silent, the user already opted in once).
     if [ "$is_update" = 0 ]; then
         local prompt_title="Kyber (Linux Port)"
@@ -169,7 +169,7 @@ _kyber_self_install_run() {
         "$desktop_dir/kyber-nxm-handler.desktop" \
         "$desktop_dir/maxima-qrc.desktop"
 
-    # 5. Write the three .desktop entries — main + qrc + nxm handlers.
+    # 5. Write the three .desktop entries - main + qrc + nxm handlers.
     # Absolute icon path avoids Papirus/custom-theme fallthrough to a
     # generic placeholder when the bare icon name isn't carried by the theme.
     local icon_abs="$HOME/.local/share/icons/hicolor/256x256/apps/kyber-linux.png"
@@ -226,7 +226,7 @@ EOF
     rm -f "$declined_marker"
 
     # 8. First install gets a passive notification. Updates stay silent
-    # here — the user already saw "Applying update / Update applied"
+    # here - the user already saw "Applying update / Update applied"
     # earlier in this run.
     if [ "$is_update" = 0 ] && command -v notify-send >/dev/null 2>&1; then
         notify-send --icon="$icon_abs" \

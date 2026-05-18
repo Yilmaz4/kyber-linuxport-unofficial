@@ -5,79 +5,51 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
-## [0.1.0-beta.4] — 2026-05-18 — Inject Path Fixed
+## [0.1.0-beta.4] - 2026-05-18 - Inject Path Fixed
 
-Two bugs that were keeping the FFI inject from working on a few distros
-got tracked down on Discord by aderius. Both are in the wine-helper
-plumbing the launcher uses to load `Kyber.dll` into BF2.
+Two inject bugs that aderius tracked down on Discord, both fixed now.
 
 ### Fixed
 
-- wine-helper no longer tries to route through a pressure-vessel D-Bus
-  container. The original wrapper grepped for bus names matching
-  `com.steampowered.App[a-f0-9]+`, which only catches hex AppIDs. BF2
-  uses the decimal AppID 1237950, so the bus name never matched and
-  the wrapper kept falling back to a host-namespace exec that didn't
-  see BF2's process. Host wine64 now runs directly and talks to BF2's
-  wineserver via the shared `WINEPREFIX` socket — wineserver does the
-  actual injection, so we don't need to share the PID namespace at all.
-  Diagnosed by aderius (Discord).
-- `vivoxsdk.dll` now lives where Wine's loader looks for it. `Kyber.dll`
-  has a static import on `vivoxsdk.dll`, and Wine was bailing with
-  OS error 126 ("Module not found") because the Kyber module updater
-  drops the DLL into `~/.local/share/kyber/module/` — which isn't on
-  the Wine search path. The launcher now symlinks it into the prefix's
-  `drive_c/windows/system32/` right before each launch. Diagnosed by
-  aderius (Discord).
+- wine-helper now runs through host wine64 directly. The old D-Bus
+  container routing in `umu-wrapper.sh` only matched hex AppIDs, but
+  BF2 is decimal 1237950, so it never worked. Diagnosed by aderius.
+- `vivoxsdk.dll` gets symlinked into Wine's `system32` before each
+  launch. Without it, Wine couldn't resolve `Kyber.dll`'s static
+  import and the inject failed with OS error 126. Diagnosed by aderius.
 
 ### Added
 
-- Recovery dialog when the FFI inject fails. Used to be a silent
-  notification; now you get a "Retry FFI" and "Use CLI Launch" choice,
-  plus the raw error message in a monospace box you can copy-paste
-  for bug reports. If the inject fails BF2 gets killed cleanly so the
-  retry starts from a clean state, no zombie process sitting around.
-- `--playmode` shortcut for the AppImage. Skips the launcher entirely
-  and starts BF2 directly through Steam. Last-resort option for users
-  whose inject path keeps failing for reasons the recovery dialog can't
-  fix — at least the game still launches.
+- Recovery dialog when the inject fails. Was a silent notification
+  before. Now you get Retry and "Use CLI Launch" buttons, plus the
+  raw error to copy for bug reports. BF2 is killed cleanly before
+  the retry.
+- `--playmode` flag on the AppImage. Skips the launcher and starts
+  BF2 directly through Steam. Last resort if nothing else works.
 
 ### Changed
 
-- First-start dialog is English everywhere. German systems were showing
-  "Ja/Nein" buttons against an already-English prompt text. The dialog
-  now runs with `LC_ALL=C.UTF-8 LANGUAGE=en` so zenity/kdialog match
-  the prompt.
-- Self-install no longer re-extracts the 220 MB AppImage on every
-  launch. It keeps a marker inside the extract directory and skips the
-  extract when the file already matches. A `cp -p` copy preserves the
-  AppImage's mtime, so the marker stays valid across restarts. Used
-  to look like a 3-5 second hang every time you opened the launcher
-  from a path with a different mtime.
-- `notify-send` fires before and after the extract step. Update used
-  to look like a launcher hang; now you actually see something happen.
-- App icon respects its own aspect ratio. The Kyber SVG has a 166×144
-  viewBox, the build script used to force it into a square box and the
-  logo ended up stretched horizontally on every icon size. Icons now
-  get rendered proportionally and padded back up to square with a
-  transparent background.
+- First-start dialog is English everywhere now (German systems were
+  getting "Ja/Nein" against an English prompt).
+- Self-install no longer re-extracts the AppImage on every launch.
+  A marker inside the extract dir plus `cp -p` for mtime preserve
+  keeps things in sync.
+- `notify-send` fires before and after the extract so the launcher
+  doesn't look frozen during that step.
+- Icon isn't stretched anymore. The Kyber SVG is 166x144, the build
+  script used to force it into a square box.
 
 ### Internal
 
-- `umu-wrapper.sh` checks `wine64` exists before exec, with a clearer
-  error message if Maxima Proton hasn't been downloaded yet.
-- `kyber-self-install.sh` guards its internal `--appimage-extract` call
-  with `KYBER_NO_AUTO_INSTALL=1`, so the hook can't recurse on FUSE3-only
-  distros that fall back to extract-and-run.
-- The CLI fallback path that previously sat as dead code in
-  `maxima_helper.dart` (`_startGameViaCli`) is now a real public
-  `startGameViaCli` method, only invoked from the recovery dialog. The
-  FFI path is still primary; CLI is recovery-only and does not get the
-  full locale lock that FFI does — known limitation, BF2's Origin
-  language dialog may show up on the CLI path.
+- `umu-wrapper.sh` checks `wine64` exists before exec.
+- `kyber-self-install.sh` guards its `--appimage-extract` call against
+  recursive triggering on FUSE3-only distros.
+- CLI fallback (`startGameViaCli`) is now public, only invoked from
+  the recovery dialog. The CLI path doesn't run the full locale lock,
+  so BF2's Origin language dialog can still show up there.
 
 
-## [0.1.0-beta.3] — 2026-05-17 — Fresh-Prefix BF2 Detection Fix
+## [0.1.0-beta.3] - 2026-05-17 - Fresh-Prefix BF2 Detection Fix
 
 Quick follow-up release because CachyOS testers (and anyone with a
 fresh-out-of-the-box Steam-Proton install) were hitting a "GAME NOT
@@ -97,7 +69,7 @@ prefix was sitting right there.
   for users with an already-existing entry is unchanged.
 - A few diagnostic loglines that were silently swallowed now actually
   show up at `WARN` level when the Steam-library lookup can't find BF2
-  — useful if your setup needs `STEAM_LIBRARY_ROOT` to point at a
+  - useful if your setup needs `STEAM_LIBRARY_ROOT` to point at a
   non-default library path.
 
 ### Internal
@@ -109,10 +81,10 @@ prefix was sitting right there.
 - Spelling pass: "unofficial" instead of the older "inofficial"
   everywhere in the source tree (README, in-app strings, build scripts).
 
-## [0.1.0-beta.2] — 2026-05-09 — Locale Lock, Cold-Start, Bazzite/Fedora Compat
+## [0.1.0-beta.2] - 2026-05-09 - Locale Lock, Cold-Start, Bazzite/Fedora Compat
 
 ### Added
-- **Steam game-path auto-detection** — `read_game_path()` is now
+- **Steam game-path auto-detection** - `read_game_path()` is now
   implemented for Linux in the bundled Maxima patch set. The previous
   `todo!()` stub caused the launcher's `get_game_dir(slug)` FFI call to
   return an empty string on Linux, blocking any feature that needed the
@@ -126,22 +98,22 @@ prefix was sitting right there.
   `<library>/steamapps/common/<installdir>/`. macOS keeps a separate
   `todo!()` stub. Inline unit tests cover the slug map and both
   parsers.
-- **AppImage container self-update (configurable endpoint)** — new
+- **AppImage container self-update (configurable endpoint)** - new
   `AppImageUpdateService` updates the AppImage file itself, not just
   the in-app module bundle. Runs only when launched from an AppImage
   (`$APPIMAGE` env present) and an update endpoint is configured via
-  `KYBER_UPDATE_URL` (no default — Source repo is private, so the
+  `KYBER_UPDATE_URL` (no default - Source repo is private, so the
   classic `gh-releases-zsync` flow does not apply yet). Manifest format
   is JSON `{version, download_url, sha256}`. The service downloads to
   `${APPIMAGE}.new.<tag>`, verifies SHA-256, `chmod 0755`, atomic
   renames over the running file, and exec's into it. Version comparison
-  uses semver via the existing `version` package — bare string equality
+  uses semver via the existing `version` package - bare string equality
   was insufficient because `PackageInfo.buildNumber` is undefined on
   Linux/AppImage builds and would have either masked legitimate updates
   or triggered them on every boot. `$APPIMAGE` is canonicalised through
   `resolveSymbolicLinksSync()` so the rename hits the real file even
   when the user invokes the AppImage via a symlink. Before exec'ing the
-  new binary the service verifies it is executable (`test -x`) — on
+  new binary the service verifies it is executable (`test -x`) - on
   `noexec` mounts (`~/Applications/` on a data partition) chmod sets
   the inode bit but `execve()` still fails, so the running launcher
   aborts the restart and survives instead of leaving the user with no
@@ -156,7 +128,7 @@ prefix was sitting right there.
   not affected by this change.
 
 ### Fixed
-- **BF2 "language not entitled" entitlement error** — the layered Wine
+- **BF2 "language not entitled" entitlement error** - the layered Wine
   registry locale-lock (`maxima-lib/src/unix/wine.rs`) now writes
   `HKCU\Environment\LANG`/`LC_ALL=en_US.UTF-8`, propagates an explicit
   English locale on the `maxima-bootstrap` spawn (`core/launch.rs`),
@@ -173,19 +145,19 @@ prefix was sitting right there.
   time on a German-locale host (`LANG=de_DE.UTF-8`).
 
 ### Performance
-- **Verify-first locale skip** — `setup_wine_registry()` and the
+- **Verify-first locale skip** - `setup_wine_registry()` and the
   pre-spawn JIT lock now run a four-key `reg query` pre-flight via
   `verify_locale_is_english()` and short-circuit both write paths
   when the prefix is already in the desired English state. On warm
   launches (the common case once a previous launch succeeded) this
   avoids 19 sequential `reg add` calls through umu-run +
-  pressure-vessel — measured launch overhead drops from ~73s to ~24s
+  pressure-vessel - measured launch overhead drops from ~73s to ~24s
   (-49s, -67%). Cold launches and tampered prefixes fall through to
   the full write path unchanged. Each individual umu-run call is
   ~3s of pressure-vessel container spawn dominated; the optimisation
   works by removing redundant calls, not by changing how each call
   works.
-- **Pre-spawn verify removed** — the four-key `reg query` probe in
+- **Pre-spawn verify removed** - the four-key `reg query` probe in
   `Kyber/ThirdParty/Maxima/maxima-lib/src/core/launch.rs` (between
   `setup_wine_registry()` and the bootstrap spawn) was a strict
   duplicate of the pre-flight verify already performed at the top of
@@ -194,21 +166,21 @@ prefix was sitting right there.
   umu-run round-trips on every game launch (warm and cold). If the
   language-entitlement regression ever returns the recovery path is a
   single-key probe of `HKCU\Software\Valve\Steam\language` (the only
-  key Steam itself sometimes rewrites between launches) — see the
+  key Steam itself sometimes rewrites between launches) - see the
   comment block at the spawn site for the recipe.
-- **Launcher window refocus on game exit** — `IngameViewCubit.unloadServer()`
+- **Launcher window refocus on game exit** - `IngameViewCubit.unloadServer()`
   in `lib/features/server_browser/providers/ingame_view_cubit.dart`
   now calls `windowManager.restore() + .show() + .focus()` after the
   LSX stream completes. BF2 takes the foreground when it launches and
   on a typical Linux DE the launcher window stays minimised in the
-  task bar after the game exits — the user landed on the desktop
+  task bar after the game exits - the user landed on the desktop
   instead of back in the launcher. Refocusing is gated to Linux and
   Windows; macOS retains its own window-management semantics. Errors
   from `windowManager` are swallowed and logged at warning level so a
   flaky Wayland implementation cannot block the cubit's normal
   cleanup path.
 
-- **Cold-start direct-file registry patch** —
+- **Cold-start direct-file registry patch** -
   `Kyber/Launcher/rust/src/linux_setup.rs` now ships
   `patch_wine_registry_for_bf2()` which writes the BF2 locale-critical
   keys (`HKCU\Control Panel\International`, `HKCU\Software\Valve\Steam`,
@@ -217,7 +189,7 @@ prefix was sitting right there.
   `HKLM\Software\WoW6432Node\Origin Games\1035052`) directly into the
   Wine prefix's `user.reg` / `system.reg` files via in-place text
   edits. Replaces (or appends) keys, replaces (or appends) entire
-  sections — runs in &lt;100 ms vs. the ~45s the equivalent 15
+  sections - runs in &lt;100 ms vs. the ~45s the equivalent 15
   sequential `reg add` calls through umu-run + pressure-vessel cost
   in `setup_wine_registry()`. Combined with the verify-first skip
   above, a cold launch on an existing Wine prefix drops from ~87s
@@ -225,7 +197,7 @@ prefix was sitting right there.
   again from `start_game()` (covers the case where the prefix was
   freshly created by the bootstrap between the two calls). It
   detects a running `wineserver` via `pgrep -x wineserver` and
-  skips itself when active — Wine serialises the registry on
+  skips itself when active - Wine serialises the registry on
   shutdown and would otherwise clobber our direct writes. On a
   brand-new Wine prefix where the registry files do not exist yet
   the patch is a no-op and the existing `setup_wine_registry()`
@@ -234,7 +206,7 @@ prefix was sitting right there.
 
 ### AppImage pipeline
 - **Type-2 runtime for Bazzite / Fedora-atomic / Silverblue / Kinoite
-  out-of-the-box support** — `tools/build-appimage.sh` now embeds the
+  out-of-the-box support** - `tools/build-appimage.sh` now embeds the
   type-2 runtime from `AppImage/type2-runtime` (commit `3d17002`,
   `tools/type2-runtime-x86_64`, ~944 KB, statically PIE-musl-linked) via
   `appimagetool --runtime-file`. The default `appimagetool` runtime is
@@ -245,7 +217,7 @@ prefix was sitting right there.
   one AppImage that boots out-of-the-box on Ubuntu (incl. 24.04 with
   AppArmor caveats), Fedora (Workstation + Silverblue + Kinoite + Bazzite),
   Arch + derivatives. The runtime is musl-statically linked so glibc
-  version is irrelevant — only kernel ≥ 4.x is required.
+  version is irrelevant - only kernel ≥ 4.x is required.
   - `xxd` of the built AppImage now shows `AI\x02` at byte offset 8
     (Type-2 magic), and `--appimage-version` reports the type-2 commit
     hash.
@@ -254,7 +226,7 @@ prefix was sitting right there.
     checkout.
   - Verified on the maintainer's Ubuntu box via the `APPIMAGE_EXTRACT_AND_RUN=1`
     proxy test that simulates the no-FUSE path.
-  - Known limitations (documentation only — no code fix possible):
+  - Known limitations (documentation only - no code fix possible):
     `tmpfs` on `/tmp` smaller than 2 GB will refuse the extract-mode
     fallback (workaround: `TMPDIR=$HOME/.cache/kyber-tmp ./AppImage`),
     and AppImages on NTFS / exFAT partitions hit `noexec` mounts
@@ -262,7 +234,7 @@ prefix was sitting right there.
 
 ### Security
 - **Self-update hardening: mandatory SHA-256, path-traversal block,
-  atomic lock** — three security-relevant fixes in
+  atomic lock** - three security-relevant fixes in
   `LinuxSelfUpdateService`:
   - The server's SHA-256 hash is now mandatory; tarballs without an
     advertised hash are rejected instead of being accepted with a
@@ -278,15 +250,15 @@ prefix was sitting right there.
     instead of serialising launcher boots behind an in-progress
     multi-minute download.
 
-## [0.1.0-beta.1] — 2026-05-08 — First Private Beta
+## [0.1.0-beta.1] - 2026-05-08 - First Private Beta
 
 First tagged build of the unofficial Kyber Linux Port. Distributed as a
 self-installing AppImage to a closed group of testers; not for general
-release. Source for this tag is GPLv3 — see `LICENSE`.
+release. Source for this tag is GPLv3 - see `LICENSE`.
 
 ### Added
 - `CHANGELOG.md` (this file) as the central change history for the Linux port.
-- **Self-installing AppImage** — first-run desktop integration without a
+- **Self-installing AppImage** - first-run desktop integration without a
   separate install script. The AppRun now sources a new
   `apprun-hooks/kyber-self-install.sh` before `linuxdeploy-plugin-gtk.sh`
   (so dialog tools load the system GTK, not the bundled one). On first
@@ -294,7 +266,7 @@ release. Source for this tag is GPLv3 — see `LICENSE`.
   application and, on confirm, copies the AppImage to `~/Applications/`,
   extracts a stable copy for the qrc:// and nxm:// URL handlers, installs
   the hicolor icon set, writes the three `.desktop` entries, refreshes
-  the desktop and icon caches, and registers the MIME handlers — all
+  the desktop and icon caches, and registers the MIME handlers - all
   under `$HOME`, no sudo. A marker file at
   `~/.local/share/kyber-linuxport/.installed-version` (size+mtime of the
   AppImage) makes subsequent starts a fast no-op; on version updates the
@@ -328,13 +300,13 @@ release. Source for this tag is GPLv3 — see `LICENSE`.
 - Kyber-Module debug-console window ("`KYBER (2.0.0-beta8)`") opening on
   every game launch on Linux. Fix: the launcher now sets
   `KYBER_HIDE_CONSOLE=1` in the env map of the `kyber_cli` subprocess
-  (`maxima_helper.dart`). Logs continue to be written to `kyber.log` —
+  (`maxima_helper.dart`). Logs continue to be written to `kyber.log` -
   only the on-screen console is suppressed, matching the Windows GUI
   default.
 - Console-window suppression made effective: empirical verification via
   `/proc/<bf2-pid>/environ` showed that the BF2 process inside the
   pressure-vessel container does NOT inherit Linux-side env vars (Dart
-  `Process.start` environment, kyber_cli env, umu-wrapper `export` — none
+  `Process.start` environment, kyber_cli env, umu-wrapper `export` - none
   reach BF2). Workaround: `umu-wrapper.sh` now writes
   `KYBER_HIDE_CONSOLE=1` into the Wine registry under `HKCU\Environment`
   immediately before launching BF2. Wine seeds the Win32 PEB env from
@@ -345,7 +317,7 @@ release. Source for this tag is GPLv3 — see `LICENSE`.
   detached stdin (`Stdio::null()`) and silenced stderr / stdout for
   silent invocations, so Wine no longer pops up a `wineconsole` for
   console-subsystem helpers like `wine-helper.exe`.
-- **Mod download leading-slash bug on Linux** — every mod download
+- **Mod download leading-slash bug on Linux** - every mod download
   failed with `PathNotFoundException: Cannot open file, path =
   'home/<user>/.local/share/kyber/mods/<mod>.zip.download'` (note the
   missing leading `/`). `download_orchestrator.dart:219-220` was

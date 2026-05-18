@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 simonlinuxcraft
 #
-# install-appimage.sh — User-level installer for the Kyber Linux Port AppImage.
+# install-appimage.sh - User-level installer for the Kyber Linux Port AppImage.
 #
 # What this does (all under $HOME, no sudo):
 #   - Removes leftover .desktop files / icons from previous source-build
@@ -12,9 +12,9 @@
 #     so qrc:// and nxm:// URL handlers can point at stable file paths
 #     (FUSE mountpoints are random per run and not suitable for handlers).
 #   - Writes three .desktop files into ~/.local/share/applications/:
-#       * kyber-linuxport.desktop      — main launcher
-#       * kyber-linuxport-qrc.desktop  — qrc:// handler (EA login redirect)
-#       * kyber-linuxport-nxm.desktop  — nxm:// handler (Nexus Mods downloads)
+#       * kyber-linuxport.desktop      - main launcher
+#       * kyber-linuxport-qrc.desktop  - qrc:// handler (EA login redirect)
+#       * kyber-linuxport-nxm.desktop  - nxm:// handler (Nexus Mods downloads)
 #   - Installs the icon, refreshes desktop database + icon cache.
 #   - Wine prefix at ~/.local/share/maxima/wine/ is left untouched.
 #
@@ -61,8 +61,8 @@ for size in 16x16 24x24 32x32 48x48 64x64 96x96 128x128 192x192 256x256 512x512 
 done
 
 echo "==> Removing old user payload (CLI/launcher dirs from .deb era)"
-# ~/.local/share/kyber/  — old CLI-payload (cli/, launcher/, mods/, locale/, module/).
-# Keep ~/.local/share/maxima/  — that's the live Wine prefix with game data.
+# ~/.local/share/kyber/  - old CLI-payload (cli/, launcher/, mods/, locale/, module/).
+# Keep ~/.local/share/maxima/  - that's the live Wine prefix with game data.
 rm -rf "$HOME/.local/share/kyber"
 
 echo "==> Installing AppImage to $APPS_DIR"

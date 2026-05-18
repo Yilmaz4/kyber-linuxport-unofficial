@@ -1,4 +1,4 @@
-# NOTICE — Kyber Linux Port (top-level)
+# NOTICE - Kyber Linux Port (top-level)
 
 This top-level repository is the **build / packaging layer** for the
 Kyber Linux Port AppImage. The full third-party / vendored-component
