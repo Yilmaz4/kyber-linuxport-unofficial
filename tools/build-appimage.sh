@@ -88,10 +88,18 @@ if ! command -v rsvg-convert >/dev/null; then
   echo "ERROR: rsvg-convert (librsvg2-bin) is required to render the icon." >&2
   exit 1
 fi
+if ! command -v convert >/dev/null; then
+  echo "ERROR: ImageMagick (convert) is required to pad icons to square." >&2
+  exit 1
+fi
 for size in 16 24 32 48 64 96 128 192 256 512; do
   mkdir -p "$APPDIR/usr/share/icons/hicolor/${size}x${size}/apps"
-  rsvg-convert -w "$size" -h "$size" "$LOGO_SVG" \
-    -o "$APPDIR/usr/share/icons/hicolor/${size}x${size}/apps/kyber-linux.png"
+  # viewBox is 166x144 (wider than tall). --keep-aspect-ratio keeps the
+  # logo from being stretched, then ImageMagick pads the result with
+  # transparency back up to a square that linuxdeploy will accept.
+  rsvg-convert -w "$size" -h "$size" --keep-aspect-ratio "$LOGO_SVG" \
+    | convert - -background none -gravity center -extent "${size}x${size}" \
+        "$APPDIR/usr/share/icons/hicolor/${size}x${size}/apps/kyber-linux.png"
 done
 mkdir -p "$APPDIR/usr/share/icons/hicolor/scalable/apps"
 cp "$LOGO_SVG" "$APPDIR/usr/share/icons/hicolor/scalable/apps/kyber-linux.svg"
@@ -177,6 +185,12 @@ echo "==> Bundling Kyber self-install AppRun hook"
 cp "$TOOLS/kyber-self-install.sh" "$APPDIR/apprun-hooks/kyber-self-install.sh"
 chmod +x "$APPDIR/apprun-hooks/kyber-self-install.sh"
 
+echo "==> Bundling kyber-playmode recovery script"
+# Recovery script for users whose inject keeps failing. AppRun catches
+# --playmode and runs this directly via Steam, no launcher in between.
+cp "$TOOLS/kyber-playmode.sh" "$APPDIR/usr/bin/kyber-playmode"
+chmod +x "$APPDIR/usr/bin/kyber-playmode"
+
 # linuxdeploy regenerates AppRun from scratch every run, so this patch is
 # applied each build (sentinel-guarded for idempotency within a single run).
 APPRUN="$APPDIR/AppRun"
@@ -196,6 +210,30 @@ inject = (
     '\n'
 )
 if needle in src and 'KYBER_SELF_INSTALL_HOOK' not in src:
+    src = src.replace(needle, inject + needle, 1)
+    p.write_text(src)
+PYEOF
+fi
+
+# --playmode shortcut: skip everything launcher-side, drop straight
+# into kyber-playmode. Has to be patched into AppRun every build
+# because linuxdeploy rewrites AppRun from scratch. Sentinel keeps
+# the patch idempotent within one run.
+if [ -f "$APPRUN" ] && ! grep -q "KYBER_PLAYMODE_BRANCH" "$APPRUN"; then
+  python3 - "$APPRUN" <<'PYEOF'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+src = p.read_text()
+needle = '# KYBER_SELF_INSTALL_HOOK'
+inject = (
+    '# KYBER_PLAYMODE_BRANCH\n'
+    'if [ "${1:-}" = "--playmode" ]; then\n'
+    '    shift\n'
+    '    exec "$this_dir"/usr/bin/kyber-playmode "$@"\n'
+    'fi\n'
+    '\n'
+)
+if needle in src and 'KYBER_PLAYMODE_BRANCH' not in src:
     src = src.replace(needle, inject + needle, 1)
     p.write_text(src)
 PYEOF

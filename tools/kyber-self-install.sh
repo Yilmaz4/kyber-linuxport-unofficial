@@ -52,17 +52,20 @@ _kyber_self_install_main() {
     # (updates are silent, the user already opted in once).
     if [ "$is_update" = 0 ]; then
         local prompt_title="Kyber (Linux Port)"
-        local prompt_text="Kyber als Anwendung registrieren?\n\nFügt Kyber zum Anwendungsmenü hinzu, installiert das Icon und registriert die qrc:// und nxm:// URL-Handler für EA-Login und Nexus Mods.\n\nDas AppImage wird nach ~/Applications/ kopiert.\n\nKann jederzeit deinstalliert werden."
+        local prompt_text="Register Kyber as an application?\n\nAdds Kyber to the application menu, installs the icon, and registers the qrc:// and nxm:// URL handlers for EA login and Nexus Mods.\n\nThe AppImage will be copied to ~/Applications/.\n\nCan be uninstalled at any time."
         local user_choice=1
 
+        # Force English locale for the dialog so Yes/No buttons match the
+        # English prompt text on non-English systems (German testers were
+        # seeing "Ja/Nein" while the body was already English-only).
         if command -v zenity >/dev/null 2>&1; then
-            zenity --question --no-wrap --title="$prompt_title" --text="$prompt_text" 2>/dev/null && user_choice=0
+            LC_ALL=C.UTF-8 LANGUAGE=en zenity --question --no-wrap --title="$prompt_title" --text="$prompt_text" 2>/dev/null && user_choice=0
         elif command -v kdialog >/dev/null 2>&1; then
-            kdialog --title "$prompt_title" --yesno "$(printf '%b' "$prompt_text")" 2>/dev/null && user_choice=0
+            LC_ALL=C.UTF-8 LANGUAGE=en kdialog --title "$prompt_title" --yesno "$(printf '%b' "$prompt_text")" 2>/dev/null && user_choice=0
         else
-            # No dialog tool — auto-install with stderr notice. Endnutzer
-            # auf Mint/GNOME/KDE haben praktisch immer zenity oder kdialog,
-            # dieser Pfad ist nur für Headless-/Minimal-Systeme.
+            # Headless / minimal systems without zenity or kdialog: auto-install
+            # with an stderr notice. Mint/GNOME/KDE installs practically always
+            # ship one of the two.
             echo "kyber-self-install: no zenity/kdialog found, installing automatically" >&2
             user_choice=0
         fi
@@ -93,21 +96,52 @@ _kyber_self_install_run() {
 
     # 1. Copy AppImage to ~/Applications/ if it isn't there yet.
     # Realpath-compare to handle the case where it's already at the target.
+    # cp -p keeps the mtime, otherwise current_id (which is size-mtime of
+    # the source) would mismatch the marker after copy and every restart
+    # would look like a new update.
     local src_real dst_real
     src_real="$(readlink -f "$APPIMAGE" 2>/dev/null || echo "$APPIMAGE")"
     dst_real="$(readlink -f "$appimage_dst" 2>/dev/null || echo "$appimage_dst")"
     if [ "$src_real" != "$dst_real" ]; then
-        cp "$APPIMAGE" "$appimage_dst" || return 1
+        cp -p "$APPIMAGE" "$appimage_dst" || return 1
         chmod +x "$appimage_dst" || true
     fi
 
     # 2. Re-extract for stable URL-handler paths. FUSE mount paths change
     # every run, so qrc:// and nxm:// .desktop files cannot point at $APPDIR.
-    rm -rf "$extract_dir"
-    (
-        cd "$apps_dir" && "$appimage_dst" --appimage-extract >/dev/null 2>&1
-    ) || return 1
-    mv "$apps_dir/squashfs-root" "$extract_dir" || return 1
+    # KYBER_NO_AUTO_INSTALL=1 stops the extracted-and-run fallback on
+    # FUSE3-only distros from triggering this hook recursively.
+    #
+    # Extract takes a few seconds on a 220 MB AppImage, so we keep a
+    # marker file inside the extract dir. Same size+mtime as the
+    # AppImage we'd extract? Then there's nothing to do. Without the
+    # marker the same file launched from a path with a different mtime
+    # would trigger a pointless re-extract.
+    local extract_marker="$extract_dir/.kyber-extract-id"
+    local dst_id
+    dst_id="$(stat -c '%s-%Y' "$appimage_dst" 2>/dev/null)"
+    if [ -n "$dst_id" ] \
+       && [ -f "$extract_marker" ] \
+       && [ "$(cat "$extract_marker" 2>/dev/null)" = "$dst_id" ]; then
+        : # already up to date
+    else
+        # The extract is slow enough that without a heads-up the launcher
+        # looks frozen for a few seconds.
+        notify-send -i system-software-update \
+            "Kyber (Linux Port)" \
+            "Applying update, one moment..." 2>/dev/null || true
+
+        rm -rf "$extract_dir"
+        (
+            cd "$apps_dir" && KYBER_NO_AUTO_INSTALL=1 "$appimage_dst" --appimage-extract >/dev/null 2>&1
+        ) || return 1
+        mv "$apps_dir/squashfs-root" "$extract_dir" || return 1
+        [ -n "$dst_id" ] && echo "$dst_id" > "$extract_marker"
+
+        notify-send -i emblem-default \
+            "Kyber (Linux Port)" \
+            "Update applied" 2>/dev/null || true
+    fi
 
     # 3. Install icons from the extracted AppDir.
     local size src dst
@@ -191,12 +225,13 @@ EOF
     echo "$current_id" > "$marker"
     rm -f "$declined_marker"
 
-    # 8. Visual feedback. On updates we stay silent; on first install
-    # a passive notification confirms the desktop entry was added.
+    # 8. First install gets a passive notification. Updates stay silent
+    # here — the user already saw "Applying update / Update applied"
+    # earlier in this run.
     if [ "$is_update" = 0 ] && command -v notify-send >/dev/null 2>&1; then
         notify-send --icon="$icon_abs" \
             "Kyber (Linux Port)" \
-            "Wurde zu deinen Anwendungen hinzugefügt." 2>/dev/null || true
+            "Added to your applications." 2>/dev/null || true
     fi
 
     return 0

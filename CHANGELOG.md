@@ -5,6 +5,78 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.4] — 2026-05-18 — Inject Path Fixed
+
+Two bugs that were keeping the FFI inject from working on a few distros
+got tracked down on Discord by aderius. Both are in the wine-helper
+plumbing the launcher uses to load `Kyber.dll` into BF2.
+
+### Fixed
+
+- wine-helper no longer tries to route through a pressure-vessel D-Bus
+  container. The original wrapper grepped for bus names matching
+  `com.steampowered.App[a-f0-9]+`, which only catches hex AppIDs. BF2
+  uses the decimal AppID 1237950, so the bus name never matched and
+  the wrapper kept falling back to a host-namespace exec that didn't
+  see BF2's process. Host wine64 now runs directly and talks to BF2's
+  wineserver via the shared `WINEPREFIX` socket — wineserver does the
+  actual injection, so we don't need to share the PID namespace at all.
+  Diagnosed by aderius (Discord).
+- `vivoxsdk.dll` now lives where Wine's loader looks for it. `Kyber.dll`
+  has a static import on `vivoxsdk.dll`, and Wine was bailing with
+  OS error 126 ("Module not found") because the Kyber module updater
+  drops the DLL into `~/.local/share/kyber/module/` — which isn't on
+  the Wine search path. The launcher now symlinks it into the prefix's
+  `drive_c/windows/system32/` right before each launch. Diagnosed by
+  aderius (Discord).
+
+### Added
+
+- Recovery dialog when the FFI inject fails. Used to be a silent
+  notification; now you get a "Retry FFI" and "Use CLI Launch" choice,
+  plus the raw error message in a monospace box you can copy-paste
+  for bug reports. If the inject fails BF2 gets killed cleanly so the
+  retry starts from a clean state, no zombie process sitting around.
+- `--playmode` shortcut for the AppImage. Skips the launcher entirely
+  and starts BF2 directly through Steam. Last-resort option for users
+  whose inject path keeps failing for reasons the recovery dialog can't
+  fix — at least the game still launches.
+
+### Changed
+
+- First-start dialog is English everywhere. German systems were showing
+  "Ja/Nein" buttons against an already-English prompt text. The dialog
+  now runs with `LC_ALL=C.UTF-8 LANGUAGE=en` so zenity/kdialog match
+  the prompt.
+- Self-install no longer re-extracts the 220 MB AppImage on every
+  launch. It keeps a marker inside the extract directory and skips the
+  extract when the file already matches. A `cp -p` copy preserves the
+  AppImage's mtime, so the marker stays valid across restarts. Used
+  to look like a 3-5 second hang every time you opened the launcher
+  from a path with a different mtime.
+- `notify-send` fires before and after the extract step. Update used
+  to look like a launcher hang; now you actually see something happen.
+- App icon respects its own aspect ratio. The Kyber SVG has a 166×144
+  viewBox, the build script used to force it into a square box and the
+  logo ended up stretched horizontally on every icon size. Icons now
+  get rendered proportionally and padded back up to square with a
+  transparent background.
+
+### Internal
+
+- `umu-wrapper.sh` checks `wine64` exists before exec, with a clearer
+  error message if Maxima Proton hasn't been downloaded yet.
+- `kyber-self-install.sh` guards its internal `--appimage-extract` call
+  with `KYBER_NO_AUTO_INSTALL=1`, so the hook can't recurse on FUSE3-only
+  distros that fall back to extract-and-run.
+- The CLI fallback path that previously sat as dead code in
+  `maxima_helper.dart` (`_startGameViaCli`) is now a real public
+  `startGameViaCli` method, only invoked from the recovery dialog. The
+  FFI path is still primary; CLI is recovery-only and does not get the
+  full locale lock that FFI does — known limitation, BF2's Origin
+  language dialog may show up on the CLI path.
+
+
 ## [0.1.0-beta.3] — 2026-05-17 — Fresh-Prefix BF2 Detection Fix
 
 Quick follow-up release because CachyOS testers (and anyone with a

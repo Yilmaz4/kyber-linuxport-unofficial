@@ -14,12 +14,26 @@ not to upstream Kyber.
 
 ## Latest release
 
-[v0.1.0-beta.3](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.3)
-from 2026-05-17. Grab
-[`KyberLinuxPort-x86_64.AppImage`](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/download/v0.1.0-beta.3/KyberLinuxPort-x86_64.AppImage)
+[v0.1.0-beta.4](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.4)
+from 2026-05-18. Grab
+[`KyberLinuxPort-x86_64.AppImage`](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/download/v0.1.0-beta.4/KyberLinuxPort-x86_64.AppImage)
 (221 MB).
 
-What's new since beta.2: fresh Steam-Proton prefixes no longer hit
+What's new since beta.3: the FFI inject path actually works on a wider
+range of distros now. wine-helper used to try to route through a
+pressure-vessel D-Bus container with a bus-name regex that only matched
+hex AppIDs (BF2 is decimal 1237950, so it never matched) — that's gone,
+host wine64 now talks to BF2's wineserver directly. The other fix
+symlinks `vivoxsdk.dll` into Wine's System32 so Kyber.dll's static import
+resolves. Both bugs were diagnosed by aderius on Discord, thanks again.
+
+There's also a recovery dialog when the inject still fails for distro-
+specific reasons (Retry / Use CLI Launch), a `--playmode` flag that
+skips Kyber entirely and launches BF2 via Steam, and a handful of UX
+fixes: English first-start dialog everywhere, no more re-extracting the
+AppImage on every launch, icon respects its own aspect ratio.
+
+What was new in beta.3: fresh Steam-Proton prefixes no longer hit
 "GAME NOT FOUND" — the launcher now writes the missing EA Games
 registry key itself on every game launch. Diagnostic logs upgraded so
 unusual Steam-library paths are easier to spot. Repo renamed from
