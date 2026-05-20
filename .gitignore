@@ -1,8 +1,17 @@
 # Build outputs - produced by tools/build-appimage.sh
-tools/KyberLinuxPort-x86_64.AppImage
-tools/KyberLinuxPort-x86_64.AppImage.bak-*
+# Covers the release build plus diagnostic/bugfix-test variants and .bak-*.
+tools/KyberLinuxPort*.AppImage*
 tools/KyberLinuxPort.AppDir/
 tools/KyberLinuxPort.extracted/
+
+# Sentry native crash-handler runtime data
+.sentry-native/
+
+# Diagnostic log exports (Logs Ubuntu/, Logs CachyOS/, ...)
+Logs */
+
+# Source tarballs produced for release uploads
+tools/*-source.tar.gz
 
 # Internal dev notes - not for distribution
 notes/
