@@ -218,6 +218,9 @@ EOF
     # 6. Refresh caches and register MIME handlers.
     update-desktop-database "$desktop_dir" 2>/dev/null || true
     gtk-update-icon-cache -t -f "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
+    # KDE Plasma menu cache, fail-soft, detached so we never block.
+    (kbuildsycoca6 --noincremental || kbuildsycoca5 --noincremental) </dev/null >/dev/null 2>&1 &
+    disown 2>/dev/null || true
     xdg-mime default kyber-linuxport-qrc.desktop x-scheme-handler/qrc 2>/dev/null || true
     xdg-mime default kyber-linuxport-nxm.desktop x-scheme-handler/nxm 2>/dev/null || true
 

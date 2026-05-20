@@ -185,6 +185,22 @@ echo "==> Bundling Kyber self-install AppRun hook"
 cp "$TOOLS/kyber-self-install.sh" "$APPDIR/apprun-hooks/kyber-self-install.sh"
 chmod +x "$APPDIR/apprun-hooks/kyber-self-install.sh"
 
+echo "==> Bundling Kyber CachyOS hint AppRun hook"
+# kyber-cachyos-hint.sh shows a one-shot zenity dialog on Arch-family
+# systems if the optional GStreamer/Vulkan packages are missing. No-op
+# everywhere else.
+cp "$TOOLS/kyber-cachyos-hint.sh" "$APPDIR/apprun-hooks/kyber-cachyos-hint.sh"
+chmod +x "$APPDIR/apprun-hooks/kyber-cachyos-hint.sh"
+
+echo "==> Bundling Kyber Vulkan pre-check AppRun hook"
+# kyber-vulkan-precheck.sh warns when Vulkan only exposes a software
+# renderer (Mesa llvmpipe / lavapipe / swrast). BF2 crashes on those
+# with CreateTexture2D E_INVALIDARG after ~25 s, so it is worth catching
+# before the game launches. Skips silently when vulkaninfo is missing
+# or when a real GPU is reported.
+cp "$TOOLS/kyber-vulkan-precheck.sh" "$APPDIR/apprun-hooks/kyber-vulkan-precheck.sh"
+chmod +x "$APPDIR/apprun-hooks/kyber-vulkan-precheck.sh"
+
 echo "==> Bundling kyber-playmode recovery script"
 # Recovery script for users whose inject keeps failing. AppRun catches
 # --playmode and runs this directly via Steam, no launcher in between.
@@ -234,6 +250,69 @@ inject = (
     '\n'
 )
 if needle in src and 'KYBER_PLAYMODE_BRANCH' not in src:
+    src = src.replace(needle, inject + needle, 1)
+    p.write_text(src)
+PYEOF
+fi
+
+# Export __GL_MaxFramesAllowed=1 in AppRun. NVIDIA-only render-ahead cap,
+# ignored by Mesa. Already carried by the installed .desktop entry, but
+# adding it here makes the direct launch from tools/ behave the same.
+if [ -f "$APPRUN" ] && ! grep -q "KYBER_GL_MAXFRAMES" "$APPRUN"; then
+  python3 - "$APPRUN" <<'PYEOF'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+src = p.read_text()
+needle = '# KYBER_SELF_INSTALL_HOOK'
+inject = (
+    '# KYBER_GL_MAXFRAMES\n'
+    'export __GL_MaxFramesAllowed="${__GL_MaxFramesAllowed:-1}"\n'
+    '\n'
+)
+if needle in src and 'KYBER_GL_MAXFRAMES' not in src:
+    src = src.replace(needle, inject + needle, 1)
+    p.write_text(src)
+PYEOF
+fi
+
+# CachyOS / Arch hint hook. Runs before the self-install hook so the
+# zenity dialog appears first if optional GStreamer plugins are missing.
+if [ -f "$APPRUN" ] && ! grep -q "KYBER_CACHYOS_HINT" "$APPRUN"; then
+  python3 - "$APPRUN" <<'PYEOF'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+src = p.read_text()
+needle = '# KYBER_SELF_INSTALL_HOOK'
+inject = (
+    '# KYBER_CACHYOS_HINT\n'
+    'if [ -f "$this_dir"/apprun-hooks/kyber-cachyos-hint.sh ]; then\n'
+    '    source "$this_dir"/apprun-hooks/kyber-cachyos-hint.sh || true\n'
+    'fi\n'
+    '\n'
+)
+if needle in src and 'KYBER_CACHYOS_HINT' not in src:
+    src = src.replace(needle, inject + needle, 1)
+    p.write_text(src)
+PYEOF
+fi
+
+# Vulkan pre-check hook. Runs right before the GTK plugin loads, after the
+# self-install dialog has had its turn, so we never overlap two dialogs at
+# launcher boot. Silent on systems with a real GPU.
+if [ -f "$APPRUN" ] && ! grep -q "KYBER_VULKAN_PRECHECK" "$APPRUN"; then
+  python3 - "$APPRUN" <<'PYEOF'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+src = p.read_text()
+needle = 'source "$this_dir"/apprun-hooks/"linuxdeploy-plugin-gtk.sh"'
+inject = (
+    '# KYBER_VULKAN_PRECHECK\n'
+    'if [ -f "$this_dir"/apprun-hooks/kyber-vulkan-precheck.sh ]; then\n'
+    '    source "$this_dir"/apprun-hooks/kyber-vulkan-precheck.sh || true\n'
+    'fi\n'
+    '\n'
+)
+if needle in src and 'KYBER_VULKAN_PRECHECK' not in src:
     src = src.replace(needle, inject + needle, 1)
     p.write_text(src)
 PYEOF
