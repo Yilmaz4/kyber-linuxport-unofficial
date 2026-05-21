@@ -5,6 +5,50 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [Unreleased] - Stability and Voice
+
+Fixes from the days after beta.4, mostly off CachyOS bug reports on
+Discord.
+
+### Fixed
+
+- Starting BF2 could kill the launcher itself. When the game PID
+  could not be resolved the launcher ran `killPid(0)`, which signals
+  its own process group. Guarded now, and it routes to the recovery
+  dialog instead.
+- Connection drops. A 2-minute refresh timer checked the wrong thing
+  and dropped a live session to Normal every two minutes. Also a
+  DLL-connect grace window, stale-instance cleanup when gRPC goes
+  unavailable, and a server-select race guard.
+- Voice settings crashed in-game. The push-to-talk key could hold a
+  value too large for a 32-bit field, which threw on every tick and
+  flooded the log. The key is clamped now and unsupported keys are
+  rejected in the picker.
+- Proximity chat showed "no devices found" on Linux. The device list
+  is pulled from the running game now, so input and output devices
+  can be picked while in a match.
+
+### Added
+
+- Manual game-path override for BF2 installs that Steam
+  auto-detection misses. In Settings and in the game-not-found
+  dialog.
+- CachyOS startup hint and a Vulkan pre-flight check, bundled as
+  AppRun hooks. Warns when the system only has software rendering
+  (llvmpipe) before the game launches into a crash.
+- The game runs under feral gamemode when `gamemoderun` is on PATH,
+  so the CPU governor stays on performance for the match. Wraps only
+  the game launch, not the launcher. `KYBER_DISABLE_GAMEMODE=1` opts
+  out.
+
+### Changed
+
+- Maxima: `KYBER_DISABLE_WINEGSTREAMER` is opt-in now, and wine
+  stderr is captured on failure so bug reports carry more.
+- The installer keeps downloaded mods across an update now. cli/,
+  launcher/, locale/ and module/ still get refreshed, mods/ is left
+  alone.
+
 ## [0.1.0-beta.4] - 2026-05-18 - Inject Path Fixed
 
 Two inject bugs that aderius tracked down on Discord, both fixed now.
@@ -329,7 +373,7 @@ release. Source for this tag is GPLv3 - see `LICENSE`.
   absolute paths (`C:\...`), continues to need no prefix.
 
 ### Compliance
-- GPLv3 pre-release audit completed (mandatory items A1–A5 plus B1–B7).
+- GPLv3 pre-release audit completed (mandatory items A1-A5 plus B1-B7).
 - `linux_self_update_service.dart`: SPDX header added.
 - `Launcher/rust/Cargo.toml` and `CLI/rust/Cargo.toml`: `license` field
   added.

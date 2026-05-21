@@ -14,20 +14,65 @@ not to upstream Kyber.
 
 ## Latest release
 
-[v0.1.0-beta.4](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.4)
-from 2026-05-18. Grab
-[`KyberLinuxPort-x86_64.AppImage`](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/download/v0.1.0-beta.4/KyberLinuxPort-x86_64.AppImage)
-(221 MB).
+<!-- Release prep: replace this block with the new tag, date, download
+     URL and file size when the release ships. -->
 
-What's new in beta.4: the inject path works on more distros. aderius
-found two bugs on Discord, both fixed. wine-helper runs through host
-wine64 directly now, and `vivoxsdk.dll` gets symlinked where Wine looks
-for it. Plus a recovery dialog if the inject still fails, a `--playmode`
-flag that starts BF2 directly through Steam, and a few UX fixes
-(English first-start dialog, no more re-extract on every launch, icon
-not stretched anymore).
+Next release is in preparation. The latest published build is still
+[v0.1.0-beta.4](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.4)
+from 2026-05-18.
+
+What is new since beta.4: the launcher no longer kills itself when BF2
+starts, the every-two-minutes connection drop is gone, the in-game
+voice settings no longer crash, and proximity chat can list audio
+devices on Linux while you are in a match. There is also a manual
+game-path override for installs Steam does not auto-detect, and a
+CachyOS hint plus a Vulkan pre-flight check that warn before a launch
+that would only crash. The game runs under gamemode when it is
+installed, and updates now keep your downloaded mods.
 
 Older releases are listed in [`CHANGELOG.md`](CHANGELOG.md).
+
+## Heads up
+
+This is a beta and a one-person port, so expect rough edges. The inject
+works on the common setups now, but voice chat is not fully proven yet,
+Nexus mod downloads can still fail, and some distro or GPU combinations
+do not work at all (a VM without GPU passthrough will not run BF2, for
+example).
+
+It also assumes a healthy system underneath. A working Steam-Proton or
+Lutris install of BF2, a real GPU with proper Vulkan drivers, and a
+normal desktop audio stack. The launcher cannot fix a broken Proton
+prefix or missing graphics drivers. A well set up system is the
+baseline here, not something the AppImage brings along.
+
+## Dependencies
+
+The AppImage bundles most of its libraries but still needs the system
+GTK and WebKit stack plus FUSE. A missing one of these is the most
+common reason a fresh install misbehaves, so pull them in up front.
+
+Debian, Ubuntu, Mint:
+
+```bash
+sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0 libfuse2 librsvg2-2 libnotify4 gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav zenity gamemode
+```
+
+Arch, CachyOS:
+
+```bash
+sudo pacman -S --needed webkit2gtk-4.1 gtk3 fuse2 librsvg libnotify gst-plugins-bad gst-plugins-ugly gst-libav zenity gamemode
+```
+
+Fedora: the equivalent webkit2gtk4.1, gtk3, fuse, librsvg2, libnotify
+and gstreamer1 plugin packages.
+
+webkit, gtk3, librsvg, libnotify and fuse are required, the app will
+not start cleanly without them. The gstreamer plugins make the EA
+login splash video play (silent without them, not fatal). zenity
+drives the first-start dialog. gamemode is optional but recommended,
+it keeps the CPU governor on performance for smoother frames. libmpv
+is bundled inside the AppImage, you do not install it yourself.
 
 ## Install
 
