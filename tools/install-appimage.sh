@@ -60,10 +60,15 @@ for size in 16x16 24x24 32x32 48x48 64x64 96x96 128x128 192x192 256x256 512x512 
   rm -f "$HOME/.local/share/icons/hicolor/$size/apps/kyber-linux."{png,svg} 2>/dev/null || true
 done
 
-echo "==> Removing old user payload (CLI/launcher dirs from .deb era)"
-# ~/.local/share/kyber/  - old CLI-payload (cli/, launcher/, mods/, locale/, module/).
+echo "==> Removing old user payload (cli/launcher/locale/module), keeping mods/"
+# ~/.local/share/kyber/  - cli/, launcher/, locale/, module/ get wiped for a
+# clean install. mods/ is deliberately kept so an update does not drop the
+# user's downloaded mods.
 # Keep ~/.local/share/maxima/  - that's the live Wine prefix with game data.
-rm -rf "$HOME/.local/share/kyber"
+kyber_data="$HOME/.local/share/kyber"
+if [ -d "$kyber_data" ]; then
+  find "$kyber_data" -mindepth 1 -maxdepth 1 ! -name mods -exec rm -rf {} +
+fi
 
 echo "==> Installing AppImage to $APPS_DIR"
 mkdir -p "$APPS_DIR"
