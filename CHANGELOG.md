@@ -5,7 +5,7 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
-## [Unreleased] - Stability and Voice
+## [0.1.0-beta.5] - 2026-05-22 - Stability and Voice
 
 Fixes from the days after beta.4, mostly off CachyOS bug reports on
 Discord.
@@ -45,9 +45,9 @@ Discord.
 
 - Maxima: `KYBER_DISABLE_WINEGSTREAMER` is opt-in now, and wine
   stderr is captured on failure so bug reports carry more.
-- The installer keeps downloaded mods across an update now. cli/,
-  launcher/, locale/ and module/ still get refreshed, mods/ is left
-  alone.
+- The installer keeps downloaded mods, plugins and mod collections
+  across an update now. cli/, locale/ and module/ still get
+  refreshed, mods/ and launcher/ are left alone.
 
 ## [0.1.0-beta.4] - 2026-05-18 - Inject Path Fixed
 
@@ -416,4 +416,4 @@ release. Source for this tag is GPLv3 - see `LICENSE`.
 
 ---
 
-[Unreleased]: https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/compare/HEAD...HEAD
+[0.1.0-beta.5]: https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/compare/v0.1.0-beta.4...v0.1.0-beta.5

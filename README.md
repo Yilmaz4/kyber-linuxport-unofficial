@@ -14,12 +14,9 @@ not to upstream Kyber.
 
 ## Latest release
 
-<!-- Release prep: replace this block with the new tag, date, download
-     URL and file size when the release ships. -->
-
-Next release is in preparation. The latest published build is still
-[v0.1.0-beta.4](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.4)
-from 2026-05-18.
+The latest build is
+[v0.1.0-beta.5](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.5)
+from 2026-05-22.
 
 What is new since beta.4: the launcher no longer kills itself when BF2
 starts, the every-two-minutes connection drop is gone, the in-game
@@ -28,7 +25,8 @@ devices on Linux while you are in a match. There is also a manual
 game-path override for installs Steam does not auto-detect, and a
 CachyOS hint plus a Vulkan pre-flight check that warn before a launch
 that would only crash. The game runs under gamemode when it is
-installed, and updates now keep your downloaded mods.
+installed, and updates now keep your downloaded mods, plugins and
+mod collections.
 
 Older releases are listed in [`CHANGELOG.md`](CHANGELOG.md).
 
