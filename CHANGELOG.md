@@ -5,6 +5,29 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.5.1] - 2026-05-22 - Launch Hotfix
+
+A hotfix on top of beta.5 for three problems around starting BF2,
+found from Discord bug reports. If beta.5.1 is unstable on your
+machine, beta.5 stays a safe fallback.
+
+### Fixed
+
+- BF2 failed to inject on the first launch after a fresh install. The
+  vivoxsdk.dll link into the Wine prefix was created before the prefix
+  existed, so the first injection failed with Wine loader error 126.
+  The link is now also placed right before injecting, when the prefix
+  is guaranteed to exist. The second launch always worked; now the
+  first one does too.
+- The manual game-path override from beta.5 was ignored at launch.
+  Install checks in the launcher and in Maxima still ran and rejected
+  a hand-set BF2 path as not installed. Both are now skipped when an
+  explicit path is set.
+- The EA Desktop language patch never applied on a Maxima-managed Wine
+  prefix. It looked under prefix/pfx/drive_c while the real location is
+  prefix/drive_c, so on non-English hosts BF2 could still raise the
+  Origin language-entitlement error.
+
 ## [0.1.0-beta.5] - 2026-05-22 - Stability and Voice
 
 Fixes from the days after beta.4, mostly off CachyOS bug reports on

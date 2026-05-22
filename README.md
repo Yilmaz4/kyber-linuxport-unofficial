@@ -15,8 +15,15 @@ not to upstream Kyber.
 ## Latest release
 
 The latest build is
-[v0.1.0-beta.5](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.5)
+[v0.1.0-beta.5.1](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.5.1)
 from 2026-05-22.
+
+v0.1.0-beta.5.1 is a hotfix on top of beta.5 for three launch problems
+found from Discord bug reports: BF2 now injects on the first launch
+after a fresh install, the manual game-path override is no longer
+ignored, and the EA Desktop language patch reaches the right Wine
+prefix. If beta.5.1 is unstable on your machine, beta.5 stays a safe
+fallback.
 
 What is new since beta.4: the launcher no longer kills itself when BF2
 starts, the every-two-minutes connection drop is gone, the in-game
