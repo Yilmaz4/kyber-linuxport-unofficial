@@ -5,6 +5,26 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6] - 2026-05-25 - Custom Proton Support
+
+Adds an experimental custom Proton path option and automatic shader cache
+invalidation when switching Proton versions. If beta.6 is unstable on your
+machine, beta.5.1 stays a safe fallback.
+
+### Added
+
+- Custom Proton path setting under Settings > Mod Configuration. Point the
+  launcher at any Proton build (GE-Proton, Proton-EM, proton-cachyos, etc.)
+  instead of the bundled GE-Proton. Routing goes through a wine/proton symlink
+  so save games and EA App login stay shared across Proton versions. The setting
+  carries a visible warning that it leaves the tested-stable path. Verified
+  working with GE-Proton 10.x, Proton-EM Latest, and proton-cachyos 11.x.
+- Shader cache invalidation on Proton switch. BF2's vkd3d-proton.cache is
+  cleared automatically when the active Proton version changes, preventing the
+  yellow-stripe and shadow-flicker artifacts that appear when an old cache built
+  against a different Wine/DXVK pipeline is reused. A manual "Clear shader
+  cache" button in the Custom Proton dialog is also available.
+
 ## [0.1.0-beta.5.1] - 2026-05-22 - Launch Hotfix
 
 A hotfix on top of beta.5 for three problems around starting BF2,
@@ -439,4 +459,6 @@ release. Source for this tag is GPLv3 - see `LICENSE`.
 
 ---
 
+[0.1.0-beta.6]: https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/compare/v0.1.0-beta.5.1...v0.1.0-beta.6
+[0.1.0-beta.5.1]: https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/compare/v0.1.0-beta.5...v0.1.0-beta.5.1
 [0.1.0-beta.5]: https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/compare/v0.1.0-beta.4...v0.1.0-beta.5

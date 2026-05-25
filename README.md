@@ -15,25 +15,19 @@ not to upstream Kyber.
 ## Latest release
 
 The latest build is
-[v0.1.0-beta.5.1](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.5.1)
-from 2026-05-22.
+[v0.1.0-beta.6](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6)
+from 2026-05-25.
 
-v0.1.0-beta.5.1 is a hotfix on top of beta.5 for three launch problems
-found from Discord bug reports: BF2 now injects on the first launch
-after a fresh install, the manual game-path override is no longer
-ignored, and the EA Desktop language patch reaches the right Wine
-prefix. If beta.5.1 is unstable on your machine, beta.5 stays a safe
-fallback.
-
-What is new since beta.4: the launcher no longer kills itself when BF2
-starts, the every-two-minutes connection drop is gone, the in-game
-voice settings no longer crash, and proximity chat can list audio
-devices on Linux while you are in a match. There is also a manual
-game-path override for installs Steam does not auto-detect, and a
-CachyOS hint plus a Vulkan pre-flight check that warn before a launch
-that would only crash. The game runs under gamemode when it is
-installed, and updates now keep your downloaded mods, plugins and
-mod collections.
+v0.1.0-beta.6 adds an experimental custom Proton path setting under
+Settings > Mod Configuration. You can point the launcher at any Proton
+build (GE-Proton, Proton-EM, proton-cachyos, etc.) instead of the
+bundled version. The setting carries a warning that it leaves the
+tested-stable path, so use it only if you have a specific reason.
+Proton switches now also clear BF2's vkd3d-proton.cache automatically,
+which prevents the yellow-stripe and shadow-flicker artifacts that come
+from reusing an old cache against a different pipeline. A manual clear
+button is in the Custom Proton dialog as well. If beta.6 is unstable
+on your machine, beta.5.1 stays a safe fallback.
 
 Older releases are listed in [`CHANGELOG.md`](CHANGELOG.md).
 
