@@ -103,12 +103,13 @@ one personally.
 If you are using CachyOs or Arch open your Terminal an install the Package
 from AUR Repo:
 
+```bash
 yay -S kyber-launcher-inofficial-appimage
-
+```
 or 
-
+```bash
 paru -S kyber-launcher-inofficial-appimage
-
+```
 
 
 ## Advanced (optional)
