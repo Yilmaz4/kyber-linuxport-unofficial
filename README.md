@@ -100,7 +100,7 @@ Tested on Ubuntu 24.04 with an Nvidia RTX 3060. Other distros should work
 since the AppImage bundles its own runtime, but I haven't verified every
 one personally.
 
-If you are using CachyOs or Arch open your Terminal an install the Package
+#### If you are using CachyOs or Arch open your Terminal an install the Package
 from AUR Repo:
 
 ```bash
