@@ -100,6 +100,40 @@ Tested on Ubuntu 24.04 with an Nvidia RTX 3060. Other distros should work
 since the AppImage bundles its own runtime, but I haven't verified every
 one personally.
 
+## Advanced (optional)
+
+### Custom Proton path
+
+The default flow downloads a known-good GE-Proton into
+`~/.local/share/maxima/wine/proton/` and runs BF2 from there. That is the
+only tested-stable path and the recommended default for most users.
+
+Advanced users can override the Proton build used for BF2. Settings ->
+Mod Configuration -> "Custom Proton Path (Experimental)" opens a dialog
+that browses for or scans the standard Steam compatibility-tools folders.
+Verified to work in testing: GE-Proton 10.x family, Proton-EM Latest,
+proton-cachyos 11.x. Newer builds with Wine 10 + DXVK 2.x can give
+noticeably smoother frame times than the bundled default, at the cost of
+losing the tested-stable safety net.
+
+Equivalent power-user env var:
+
+```bash
+KYBER_PROTON_PATH="$HOME/.steam/steam/compatibilitytools.d/Proton-EM Latest" \
+  ~/Applications/KyberLinuxPort-x86_64.AppImage
+```
+
+Resolution order is env var first, then a sidecar file at
+`~/.local/share/maxima/custom_proton_path` (written by the UI), then the
+auto-managed default.
+
+Implementation: when a custom path is active, the launcher transparently
+swaps `~/.local/share/maxima/wine/proton` for a symlink to the chosen
+build (originals are moved aside to `proton.maxima-backup`). The Wine
+prefix itself stays the shared BF2 Steam compat-prefix, so save games and
+EA App login survive switching between default and custom. "Reset to
+default" in the dialog restores the symlink instantly without re-download.
+
 ## Build
 
 Flutter (master channel), Rust stable, GTK 3 dev packages, patchelf,
