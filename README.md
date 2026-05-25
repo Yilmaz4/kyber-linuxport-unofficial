@@ -146,6 +146,16 @@ prefix itself stays the shared BF2 Steam compat-prefix, so save games and
 EA App login survive switching between default and custom. "Reset to
 default" in the dialog restores the symlink instantly without re-download.
 
+Switching Proton also clears BF2's vkd3d-proton.cache automatically, so
+the first match after a switch will recompile shaders for one or two
+minutes and then settle smooth. A manual Clear shader cache button is
+in the dialog for cases where the auto-purge cannot find your BF2
+install (Custom Game Path setups).
+
+Close BF2 fully before switching Proton. The dialog detects a stale
+wineserver from a previous BF2 session and offers a one-click "Kill
+wineserver and retry" action, but cleanly exited beats forced-kill.
+
 ## Build
 
 Flutter (master channel), Rust stable, GTK 3 dev packages, patchelf,
