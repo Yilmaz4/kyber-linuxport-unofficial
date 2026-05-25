@@ -15,19 +15,25 @@ not to upstream Kyber.
 ## Latest release
 
 The latest build is
-[v0.1.0-beta.6](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6)
+[v0.1.0-beta.6.1](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.1)
 from 2026-05-25.
 
-v0.1.0-beta.6 adds an experimental custom Proton path setting under
-Settings > Mod Configuration. You can point the launcher at any Proton
-build (GE-Proton, Proton-EM, proton-cachyos, etc.) instead of the
-bundled version. The setting carries a warning that it leaves the
+v0.1.0-beta.6.1 is a hotfix on top of beta.6. Switching Proton while a
+wineserver from a previous BF2 session was still attached to the Maxima
+prefix could silently leave BF2 unable to launch. The Custom Proton
+dialog now detects the case and offers a one-click "Kill wineserver and
+retry" action instead of failing silently. If beta.6.1 is unstable on
+your machine, beta.6 stays a safe fallback.
+
+What is new since beta.5.1: an experimental custom Proton path setting
+under Settings > Mod Configuration lets you point the launcher at any
+Proton build (GE-Proton, Proton-EM, proton-cachyos, etc.) instead of
+the bundled version. The setting carries a warning that it leaves the
 tested-stable path, so use it only if you have a specific reason.
-Proton switches now also clear BF2's vkd3d-proton.cache automatically,
+Proton switches also clear BF2's vkd3d-proton.cache automatically,
 which prevents the yellow-stripe and shadow-flicker artifacts that come
 from reusing an old cache against a different pipeline. A manual clear
-button is in the Custom Proton dialog as well. If beta.6 is unstable
-on your machine, beta.5.1 stays a safe fallback.
+button is in the Custom Proton dialog as well.
 
 Older releases are listed in [`CHANGELOG.md`](CHANGELOG.md).
 

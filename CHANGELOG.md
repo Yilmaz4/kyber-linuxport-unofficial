@@ -5,6 +5,25 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6.1] - 2026-05-25 - Wineserver Hotfix
+
+A hotfix on top of beta.6 for one problem around switching Proton
+versions, found from CachyOS bug reports on the day of the release.
+If beta.6.1 is unstable on your machine, beta.6 stays a safe fallback.
+
+### Fixed
+
+- Switching Proton via Settings > Mod Configuration could silently leave
+  BF2 unable to launch when a wineserver from the previous BF2 session
+  was still attached to the Maxima prefix. The stale wineserver and the
+  newly-routed Wine binary then fought over the prefix and the next
+  launch hung with no UI feedback. The dialog now detects this case
+  before writing the sidecar, shows a "Wineserver still running"
+  confirmation, and offers a "Kill wineserver and retry" action. The
+  kill is prefix-scoped, so wineservers belonging to other Wine games
+  are never touched. No-op Save with the same Proton path is never
+  blocked.
+
 ## [0.1.0-beta.6] - 2026-05-25 - Custom Proton Support
 
 Adds an experimental custom Proton path option and automatic shader cache
