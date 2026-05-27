@@ -5,6 +5,27 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6.2] - 2026-05-27 - Custom Steam Path Detection
+
+A hotfix on top of beta.6.1 for users whose Steam library lives outside
+the default locations. If beta.6.2 misbehaves, beta.6.1 stays a safe
+fallback.
+
+### Fixed
+
+- BF2 launches were silently broken on systems where Steam is installed
+  in a non-standard path (for example `~/Games/Steam` instead of
+  `~/.steam/steam`, `~/.local/share/Steam`, or `/mnt/Games/SteamLibrary`).
+  The compatdata symlink setup probed a hardcoded list of library roots
+  and missed those installs, even though Steam itself had BF2 registered
+  via `libraryfolders.vdf`. Maxima's wine prefix then pointed at an empty
+  directory and the launch hung with no UI feedback. Detection now reuses
+  the same `libraryfolders.vdf` resolver that already finds the BF2
+  install directory, and derives the compatdata path arithmetically from
+  there. The hardcoded list stays as a fallback for environments where
+  the vdf chain is missing. Users who set `STEAM_LIBRARY_ROOT` as a
+  workaround on earlier releases can unset it.
+
 ## [0.1.0-beta.6.1] - 2026-05-25 - Wineserver Hotfix
 
 A hotfix on top of beta.6 for one problem around switching Proton

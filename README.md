@@ -15,15 +15,19 @@ not to upstream Kyber.
 ## Latest release
 
 The latest build is
-[v0.1.0-beta.6.1](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.1)
-from 2026-05-25.
+[v0.1.0-beta.6.2](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.2)
+from 2026-05-27.
 
-v0.1.0-beta.6.1 is a hotfix on top of beta.6. Switching Proton while a
-wineserver from a previous BF2 session was still attached to the Maxima
-prefix could silently leave BF2 unable to launch. The Custom Proton
-dialog now detects the case and offers a one-click "Kill wineserver and
-retry" action instead of failing silently. If beta.6.1 is unstable on
-your machine, beta.6 stays a safe fallback.
+v0.1.0-beta.6.2 is a hotfix on top of beta.6.1 for users whose Steam
+library lives outside the default locations (e.g. `~/Games/Steam`
+instead of `~/.steam/steam`, `~/.local/share/Steam`, or
+`/mnt/Games/SteamLibrary`). The compatdata symlink setup probed a
+hardcoded list and missed those installs, which silently broke BF2
+launches with no UI feedback. Detection now reuses the same
+`libraryfolders.vdf` resolver that already finds the BF2 install
+directory, so any Steam-registered library is recognized
+automatically. If beta.6.2 is unstable on your machine, beta.6.1 stays
+a safe fallback.
 
 What is new since beta.5.1: an experimental custom Proton path setting
 under Settings > Mod Configuration lets you point the launcher at any
