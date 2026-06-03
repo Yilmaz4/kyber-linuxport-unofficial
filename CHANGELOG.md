@@ -5,6 +5,57 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6.3] - 2026-06-03 - Login Reliability
+
+Fixes the EA login hanging forever on sandboxed browsers and Steam Deck,
+adds a manual code fallback for when the browser callback never arrives,
+and makes a silently-failing game launch finally report why it stopped.
+If beta.6.3 misbehaves, beta.6.2 stays a safe fallback.
+
+### Fixed
+
+- EA login could hang forever with no feedback. Sign-in opens the system
+  browser and waits for EA to hand the auth code back to a local callback
+  server. If that callback never arrived, the launcher waited on the socket
+  indefinitely and the login spinner never stopped. The wait now times out
+  after 5 minutes with a clear error that names the workaround, and the
+  local callback port is released so the next attempt can rebind it.
+
+- The qrc:// login handler went stale after the first launch on installed
+  AppImages. The launcher re-registered the handler on every start at the
+  AppImage's temporary mount path, which changes each run, overwriting the
+  stable handler the installer had set up. From the second launch on, the
+  handler pointed at a dead path and the EA login callback silently failed.
+  Packaged builds now keep the installer's stable handler instead of
+  re-pointing it at the mount.
+
+- A game launch that exited immediately logged only "Game stopped" with no
+  reason, which made the recent "launches but nothing happens" reports
+  impossible to diagnose. The launcher now logs the launch helper's exit
+  status, so the log shows whether umu/Proton failed to start or the game
+  itself exited right away.
+
+- Two harmless exceptions were thrown on every Linux start and sent to crash
+  tracking: a MissingPluginException from the protocol-handler plugin (which
+  has no Linux backend; nxm:// links are handled by a separate watcher) and
+  a gRPC "Invalid token" error from a module-version check that ran before
+  login. Both are now guarded, so they no longer clutter the log or crash
+  reports.
+
+### Added
+
+- Manual code entry for EA login. EA redirects the signed-in browser to a
+  qrc:// link that the system is supposed to hand back to the launcher. A
+  sandboxed browser (the default Flatpak build of Zen, for example, and most
+  Steam Deck setups) routes that link through the desktop portal, which does
+  not deliver an unregistered scheme like qrc:// to a host application, so
+  the launcher never got the code. When the automatic callback does not
+  arrive, the login screen now offers a field to paste the sign-in link or
+  code straight from the browser. It is fed to the same local callback, so
+  login completes without depending on the browser handing the link back. A
+  native (non-sandboxed) default browser, or signing in to the EA app first,
+  still works automatically.
+
 ## [0.1.0-beta.6.2] - 2026-05-27 - Custom Steam Path Detection
 
 A hotfix on top of beta.6.1 for users whose Steam library lives outside

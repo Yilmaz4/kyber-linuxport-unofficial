@@ -275,6 +275,29 @@ if needle in src and 'KYBER_GL_MAXFRAMES' not in src:
 PYEOF
 fi
 
+# Mark this as a packaged build so the launcher skips its in-app qrc://
+# registration (Maxima set_up_registry). The self-install hook already
+# registers the qrc:// handler at a stable ~/Applications path; without this
+# flag the launcher overwrites it on every start with a handler pointing at
+# the ephemeral FUSE mount, which goes stale on the next launch and breaks the
+# EA login callback. Honors an existing MAXIMA_PACKAGED for dev overrides.
+if [ -f "$APPRUN" ] && ! grep -q "KYBER_MAXIMA_PACKAGED" "$APPRUN"; then
+  python3 - "$APPRUN" <<'PYEOF'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+src = p.read_text()
+needle = '# KYBER_SELF_INSTALL_HOOK'
+inject = (
+    '# KYBER_MAXIMA_PACKAGED\n'
+    'export MAXIMA_PACKAGED="${MAXIMA_PACKAGED:-1}"\n'
+    '\n'
+)
+if needle in src and 'KYBER_MAXIMA_PACKAGED' not in src:
+    src = src.replace(needle, inject + needle, 1)
+    p.write_text(src)
+PYEOF
+fi
+
 # CachyOS / Arch hint hook. Runs before the self-install hook so the
 # zenity dialog appears first if optional GStreamer plugins are missing.
 if [ -f "$APPRUN" ] && ! grep -q "KYBER_CACHYOS_HINT" "$APPRUN"; then
@@ -327,6 +350,15 @@ echo "==> Restoring Flutter RUNPATH"
 # system deps linuxdeploy added in usr/lib/ are still found because GTK's
 # linker glue brings them in via NEEDED entries on the GTK libs themselves.
 patchelf --set-rpath '$ORIGIN/lib' "$APPDIR/usr/bin/kyber_launcher"
+
+# libsentry.so is loaded from usr/bin/lib via the launcher's RUNPATH but has
+# no RUNPATH of its own; its NEEDED libcurl.so.4 is bundled only in usr/lib.
+# Without this it resolves libcurl from the system and silently fails to load
+# on minimal/immutable distros that lack it (Sentry stops, launcher keeps
+# running). Point its RUNPATH at usr/lib (two dirs up from usr/bin/lib).
+if [ -f "$APPDIR/usr/bin/lib/libsentry.so" ]; then
+  patchelf --set-rpath '$ORIGIN/../../lib' "$APPDIR/usr/bin/lib/libsentry.so"
+fi
 
 echo "==> Building AppImage"
 # AppImage runtime selection.
