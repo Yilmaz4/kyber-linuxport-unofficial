@@ -15,19 +15,17 @@ not to upstream Kyber.
 ## Latest release
 
 The latest build is
-[v0.1.0-beta.6.3](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.3)
-from 2026-06-03.
+[v0.1.0-beta.6.4](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4)
+from 2026-06-04.
 
-v0.1.0-beta.6.3 improves Linux EA-login reliability. Login no longer
-hangs forever when the browser callback never comes back; it times out
-with a clear message instead. A new manual code entry lets you finish
-login when the automatic browser callback fails, which unblocks
-sandboxed browsers (the default Flatpak build of Zen and friends) and
-Steam Deck, where the browser cannot hand the sign-in link back to the
-launcher. It also fixes the qrc:// login handler going stale after the
-first launch on installed AppImages, and a game that launches and then
-immediately stops now logs why instead of a silent "Game stopped". If
-beta.6.3 is unstable on your machine, beta.6.2 stays a safe fallback.
+v0.1.0-beta.6.4 makes the launcher start on Steam Deck and SteamOS. The
+bundled webkit2gtk dependency, which was unused on Linux but crashed
+startup on systems without a system webkit, has been dropped, which also
+shrinks the AppImage by about 47 MB. On the Deck the manual login code
+field is now shown expanded by default with a hint, since the Flatpak
+browser there cannot hand the sign-in link back to the launcher. This is
+a test/pre-release hotfix; if it misbehaves, beta.6.3 stays a safe
+fallback.
 
 What is new since beta.5.1: an experimental custom Proton path setting
 under Settings > Mod Configuration lets you point the launcher at any
@@ -58,28 +56,30 @@ baseline here, not something the AppImage brings along.
 ## Dependencies
 
 The AppImage bundles most of its libraries but still needs the system
-GTK and WebKit stack plus FUSE. A missing one of these is the most
-common reason a fresh install misbehaves, so pull them in up front.
+GTK stack plus FUSE. A missing one of these is the most common reason a
+fresh install misbehaves, so pull them in up front.
 
 Debian, Ubuntu, Mint:
 
 ```bash
-sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0 libfuse2 librsvg2-2 libnotify4 gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav zenity gamemode
+sudo apt install libgtk-3-0 libfuse2 librsvg2-2 libnotify4 gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav zenity gamemode
 ```
 
 Arch, CachyOS:
 
 ```bash
-sudo pacman -S --needed webkit2gtk-4.1 gtk3 fuse2 librsvg libnotify gst-plugins-bad gst-plugins-ugly gst-libav zenity gamemode
+sudo pacman -S --needed gtk3 fuse2 librsvg libnotify gst-plugins-bad gst-plugins-ugly gst-libav zenity gamemode
 ```
 
-Fedora: the equivalent webkit2gtk4.1, gtk3, fuse, librsvg2, libnotify
-and gstreamer1 plugin packages.
+Fedora: the equivalent gtk3, fuse, librsvg2, libnotify and gstreamer1
+plugin packages.
 
-webkit, gtk3, librsvg, libnotify and fuse are required, the app will
-not start cleanly without them. The gstreamer plugins make the EA
-login splash video play (silent without them, not fatal). zenity
-drives the first-start dialog. gamemode is optional but recommended,
+gtk3, librsvg, libnotify and fuse are required, the app will not start
+cleanly without them. (webkit2gtk is no longer needed: the in-app
+webview is unused on Linux, so it was dropped to fix startup on systems
+without a system webkit such as the Steam Deck.) The gstreamer plugins
+make the EA login splash video play (silent without them, not fatal).
+zenity drives the first-start dialog. gamemode is optional but recommended,
 it keeps the CPU governor on performance for smoother frames. libmpv
 is bundled inside the AppImage, you do not install it yourself.
 
@@ -115,6 +115,28 @@ or
 paru -S kyber-launcher-inofficial-appimage
 ```
 
+
+## Steam Deck / SteamOS
+
+Use Desktop Mode. The AppImage runs on SteamOS like on any other distro;
+the webkit dependency was dropped, so it starts without extra packages.
+
+The catch is the EA login. The launcher opens EA sign-in in your browser,
+and on the Deck that is usually a Flatpak browser, which does not hand the
+`qrc://` callback back to the launcher, so the automatic login never
+completes. To finish login manually:
+
+1. Press "Login with EA" and sign in in the browser that opens.
+2. After signing in, the browser tries to open a `qrc://...` link and
+   shows an error or blank page. Copy that link (or just the `code=...`
+   value from it).
+3. Back in the launcher, paste it into the field under "Browser did not
+   return to the launcher?" on the login screen and submit.
+
+On a detected Steam Deck that paste field is shown expanded by default.
+
+Alternative: run the launcher inside a Distrobox container that has a
+normal (non-Flatpak) browser, where the callback can work automatically.
 
 ## Advanced (optional)
 

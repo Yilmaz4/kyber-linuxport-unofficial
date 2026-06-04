@@ -118,6 +118,13 @@ export DEPLOY_GTK_VERSION=3
   --icon-file "$APPDIR/kyber-linux.png" \
   --plugin gtk
 
+# linuxdeploy-plugin-gtk copies the whole girepository-1.0 typelib dir from the
+# build host. If libwebkit2gtk-4.1-dev is installed there, the WebKit/JSC
+# typelibs come along even though nothing loads them (webkit was dropped from
+# this build). Strip them so no webkit artifact ships in the AppImage.
+rm -f "$APPDIR"/usr/lib/girepository-1.0/WebKit*.typelib \
+      "$APPDIR"/usr/lib/girepository-1.0/JavaScriptCore*.typelib 2>/dev/null || true
+
 echo "==> Patching GTK AppRun hook with runtime loaders.cache regen"
 # linuxdeploy regenerates apprun-hooks/linuxdeploy-plugin-gtk.sh on every
 # run, dropping any manual edits. The default hook ships a loaders.cache
@@ -145,6 +152,16 @@ if [ -x "$_kyber_gdk_query" ] && [ -d "$_kyber_gdk_loader_dir" ]; then
 fi
 unset _kyber_gdk_query _kyber_gdk_loader_dir
 HOOKEOF
+fi
+
+# Native Wayland opt-in: linuxdeploy-plugin-gtk hardcodes GDK_BACKEND=x11
+# (forces XWayland) because the Flutter-GTK Wayland backend can crash. Soften it
+# to a fallback so users can `export GDK_BACKEND=wayland` for smoother native
+# Wayland; x11 stays the default. Only the regenerated AppDir copy is patched,
+# the linuxdeploy template is untouched. Idempotent (the patched line no longer
+# matches the pattern).
+if [ -f "$GTK_HOOK" ]; then
+  sed -i 's/^export GDK_BACKEND=x11.*/export GDK_BACKEND="${GDK_BACKEND:-x11}"/' "$GTK_HOOK"
 fi
 
 echo "==> Bundling SVG pixbuf loader (linuxdeploy-plugin-gtk skips it)"
@@ -191,6 +208,13 @@ echo "==> Bundling Kyber CachyOS hint AppRun hook"
 # everywhere else.
 cp "$TOOLS/kyber-cachyos-hint.sh" "$APPDIR/apprun-hooks/kyber-cachyos-hint.sh"
 chmod +x "$APPDIR/apprun-hooks/kyber-cachyos-hint.sh"
+
+echo "==> Bundling Kyber Steam Deck hint AppRun hook"
+# kyber-steamdeck-hint.sh shows a one-shot note on SteamOS/Steam Deck about
+# the EA login paste flow (the browser callback does not return there). No-op
+# everywhere else.
+cp "$TOOLS/kyber-steamdeck-hint.sh" "$APPDIR/apprun-hooks/kyber-steamdeck-hint.sh"
+chmod +x "$APPDIR/apprun-hooks/kyber-steamdeck-hint.sh"
 
 echo "==> Bundling Kyber Vulkan pre-check AppRun hook"
 # kyber-vulkan-precheck.sh warns when Vulkan only exposes a software
@@ -298,6 +322,27 @@ if needle in src and 'KYBER_MAXIMA_PACKAGED' not in src:
 PYEOF
 fi
 
+# Quiet GTK input-method warnings (IBus / GTK modules missing) that look like
+# errors on minimal/immutable systems (Steam Deck etc.) but are harmless. Only
+# fallback-set with ${:-}, so a host with a real ibus/fcitx setup keeps it.
+if [ -f "$APPRUN" ] && ! grep -q "KYBER_GTK_IM_QUIET" "$APPRUN"; then
+  python3 - "$APPRUN" <<'PYEOF'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+src = p.read_text()
+needle = '# KYBER_SELF_INSTALL_HOOK'
+inject = (
+    '# KYBER_GTK_IM_QUIET\n'
+    'export GTK_IM_MODULE="${GTK_IM_MODULE:-}"\n'
+    'export GTK_MODULES="${GTK_MODULES:-}"\n'
+    '\n'
+)
+if needle in src and 'KYBER_GTK_IM_QUIET' not in src:
+    src = src.replace(needle, inject + needle, 1)
+    p.write_text(src)
+PYEOF
+fi
+
 # CachyOS / Arch hint hook. Runs before the self-install hook so the
 # zenity dialog appears first if optional GStreamer plugins are missing.
 if [ -f "$APPRUN" ] && ! grep -q "KYBER_CACHYOS_HINT" "$APPRUN"; then
@@ -314,6 +359,27 @@ inject = (
     '\n'
 )
 if needle in src and 'KYBER_CACHYOS_HINT' not in src:
+    src = src.replace(needle, inject + needle, 1)
+    p.write_text(src)
+PYEOF
+fi
+
+# Steam Deck / SteamOS hint hook. Runs before the self-install hook so the
+# note appears first. No-op on non-SteamOS systems.
+if [ -f "$APPRUN" ] && ! grep -q "KYBER_STEAMDECK_HINT" "$APPRUN"; then
+  python3 - "$APPRUN" <<'PYEOF'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+src = p.read_text()
+needle = '# KYBER_SELF_INSTALL_HOOK'
+inject = (
+    '# KYBER_STEAMDECK_HINT\n'
+    'if [ -f "$this_dir"/apprun-hooks/kyber-steamdeck-hint.sh ]; then\n'
+    '    source "$this_dir"/apprun-hooks/kyber-steamdeck-hint.sh || true\n'
+    'fi\n'
+    '\n'
+)
+if needle in src and 'KYBER_STEAMDECK_HINT' not in src:
     src = src.replace(needle, inject + needle, 1)
     p.write_text(src)
 PYEOF

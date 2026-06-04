@@ -5,6 +5,40 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6.4] - 2026-06-04 - Steam Deck Support
+
+Makes the launcher start on Steam Deck and SteamOS by dropping the bundled
+webkit2gtk dependency, which was unused on Linux but crashed startup on
+systems without a system webkit. Also shrinks the AppImage by about 47 MB
+and makes the manual paste login easy to find on the Deck. A test/pre-release
+hotfix; if it misbehaves, beta.6.3 stays a safe fallback.
+
+### Fixed
+
+- The launcher failed to start on Steam Deck/SteamOS with a "missing
+  libwebkit2gtk" error. webkit2gtk (122 MB) was pulled in only by an unused
+  webview plugin; the EA login uses the external browser, so webkit is never
+  used on Linux. It also looks for helper processes at a hardcoded path that
+  does not exist on immutable systems, so the process crashed before the UI.
+  The webview plugin is now stubbed out on Linux and webkit is no longer
+  bundled.
+
+### Changed
+
+- On Steam Deck/SteamOS the EA login's manual code field is shown expanded by
+  default, with a hint, and can be reopened from the error screen if the first
+  attempt times out. The Deck's Flatpak browser does not hand the qrc://
+  callback back to the launcher, so pasting the code is the reliable path.
+- Settings shows the unofficial Linux-port version next to the upstream Kyber
+  client version.
+- GTK input-method warnings on minimal systems are quieted.
+- GDK_BACKEND can be set to wayland for native Wayland (default stays x11).
+
+### Added
+
+- A one-time hint on first launch on SteamOS/Steam Deck pointing at the paste
+  login and the Distrobox alternative.
+
 ## [0.1.0-beta.6.3] - 2026-06-03 - Login Reliability
 
 Fixes the EA login hanging forever on sandboxed browsers and Steam Deck,
