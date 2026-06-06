@@ -125,6 +125,20 @@ export DEPLOY_GTK_VERSION=3
 rm -f "$APPDIR"/usr/lib/girepository-1.0/WebKit*.typelib \
       "$APPDIR"/usr/lib/girepository-1.0/JavaScriptCore*.typelib 2>/dev/null || true
 
+# linuxdeploy bundles the gnutls TLS cluster (libgnutls/libnettle/libhogweed),
+# pulled in transitively by ffmpeg/media_kit (libavformat -> librtmp/libsrt) and
+# by cups/ldap. The bundled hogweed/nettle is older than what rolling distros
+# ship. On SteamOS a system component loads the newer system libgnutls.so.30,
+# which then binds against our older bundled libhogweed already in the namespace
+# and aborts at startup with:
+#   undefined symbol: nettle_rsa_oaep_sha384_decrypt, version HOGWEED_6
+# Drop these three so the whole chain comes from the system, self-consistent.
+# Safe because the AppImage's glibc baseline already exceeds the nettle/hogweed
+# soname floor, so any system that can start it ships a new-enough crypto stack.
+rm -f "$APPDIR"/usr/lib/libgnutls.so.* \
+      "$APPDIR"/usr/lib/libhogweed.so.* \
+      "$APPDIR"/usr/lib/libnettle.so.* 2>/dev/null || true
+
 echo "==> Patching GTK AppRun hook with runtime loaders.cache regen"
 # linuxdeploy regenerates apprun-hooks/linuxdeploy-plugin-gtk.sh on every
 # run, dropping any manual edits. The default hook ships a loaders.cache

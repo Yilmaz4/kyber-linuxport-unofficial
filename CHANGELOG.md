@@ -5,6 +5,44 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6.4.1] - 2026-06-06 - Steam Deck Fixes
+
+Follow-up to beta.6.4. The launcher still failed to start on Steam Deck and
+SteamOS after the webkit fix, this time with a crypto library mismatch, and
+the manual paste login could silently do nothing. Also fixes two Linux-only
+auth paths that broke session recovery. Still a test/pre-release; if it
+misbehaves, beta.6.3 stays a safe fallback.
+
+### Fixed
+
+- The launcher still crashed on startup on Steam Deck/SteamOS after beta.6.4,
+  now with "undefined symbol: nettle_rsa_oaep_sha384_decrypt". The AppImage
+  bundled its own gnutls/nettle/hogweed, but an older hogweed than rolling
+  distros ship. The system's newer gnutls then bound against the bundled older
+  hogweed and aborted before the UI. These crypto libraries are no longer
+  bundled, so the whole TLS stack comes from the system as a consistent set.
+- The manual sign-in code field could sit on "Submitting sign-in code..."
+  forever. The code is delivered to the login flow's local callback, which only
+  runs while a login is in progress; pasting with no active login hit a closed
+  port and was silently ignored. The field now tells you to start the login
+  first instead of appearing to hang.
+- Session recovery did nothing on Linux. The "invalid grant" re-login and the
+  "expired session" exit button both deleted the stale auth file at a hardcoded
+  Windows path, which on Linux pointed nowhere, so the stale token was never
+  cleared and the expired-session restart never ran. Both now use the correct
+  per-platform path.
+- The login could get stuck on the loading spinner if EA returned an "invalid
+  grant" while no stored auth file was present; it now surfaces the error
+  instead of hanging.
+- EA sign-in errors are now shown in plain language with what to do next, and
+  the full error text is selectable and scrollable instead of being cut off in
+  the dialog.
+
+### Changed
+
+- The "Mod Configuration" settings tile is now labelled "Mods / Proton", since
+  the custom Proton path setting lives there and Proton is Linux-specific.
+
 ## [0.1.0-beta.6.4] - 2026-06-04 - Steam Deck Support
 
 Makes the launcher start on Steam Deck and SteamOS by dropping the bundled

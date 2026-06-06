@@ -14,28 +14,14 @@ not to upstream Kyber.
 
 ## Latest release
 
-The latest build is
-[v0.1.0-beta.6.4](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4)
-from 2026-06-04.
+The latest stable build is
+[v0.1.0-beta.6.3](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.3)
+from 2026-06-03.
 
-v0.1.0-beta.6.4 makes the launcher start on Steam Deck and SteamOS. The
-bundled webkit2gtk dependency, which was unused on Linux but crashed
-startup on systems without a system webkit, has been dropped, which also
-shrinks the AppImage by about 47 MB. On the Deck the manual login code
-field is now shown expanded by default with a hint, since the Flatpak
-browser there cannot hand the sign-in link back to the launcher. This is
-a test/pre-release hotfix; if it misbehaves, beta.6.3 stays a safe
-fallback.
-
-What is new since beta.5.1: an experimental custom Proton path setting
-under Settings > Mod Configuration lets you point the launcher at any
-Proton build (GE-Proton, Proton-EM, proton-cachyos, etc.) instead of
-the bundled version. The setting carries a warning that it leaves the
-tested-stable path, so use it only if you have a specific reason.
-Proton switches also clear BF2's vkd3d-proton.cache automatically,
-which prevents the yellow-stripe and shadow-flicker artifacts that come
-from reusing an old cache against a different pipeline. A manual clear
-button is in the Custom Proton dialog as well.
+v0.1.0-beta.6.3 improves EA login reliability: the sign-in no longer hangs
+forever on sandboxed browsers and Steam Deck, a manual code fallback covers
+the case where the browser callback never arrives, and a game launch that
+stops silently now reports why it ended.
 
 Older releases are listed in [`CHANGELOG.md`](CHANGELOG.md).
 
@@ -104,17 +90,11 @@ Tested on Ubuntu 24.04 with an Nvidia RTX 3060. Other distros should work
 since the AppImage bundles its own runtime, but I haven't verified every
 one personally.
 
-#### If you are using CachyOs or Arch open your Terminal an install the Package
-from AUR Repo:
+On Arch or CachyOS you can install from the AUR instead:
 
 ```bash
-yay -S kyber-launcher-inofficial-appimage
+yay -S kyber-launcher-inofficial-appimage   # or: paru -S kyber-launcher-inofficial-appimage
 ```
-or 
-```bash
-paru -S kyber-launcher-inofficial-appimage
-```
-
 
 ## Steam Deck / SteamOS
 
@@ -181,6 +161,19 @@ install (Custom Game Path setups).
 Close BF2 fully before switching Proton. The dialog detects a stale
 wineserver from a previous BF2 session and offers a one-click "Kill
 wineserver and retry" action, but cleanly exited beats forced-kill.
+
+### Native Wayland
+
+The launcher runs on X11 (XWayland) by default, which is the stable
+path. On a Wayland session you can try the native backend for smoother
+rendering:
+
+```bash
+GDK_BACKEND=wayland ~/Applications/KyberLinuxPort-x86_64.AppImage
+```
+
+If the window glitches or crashes, drop the variable and it falls back
+to X11.
 
 ## Build
 
