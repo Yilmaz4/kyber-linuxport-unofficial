@@ -23,6 +23,12 @@ forever on sandboxed browsers and Steam Deck, a manual code fallback covers
 the case where the browser callback never arrives, and a game launch that
 stops silently now reports why it ended.
 
+Steam Deck / SteamOS: a test build,
+[v0.1.0-beta.6.4.1](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.1),
+fixes a startup crash specific to the Deck and is offered as a pre-release.
+It is not the recommended build for everyone yet; if it misbehaves, 6.3 is
+the stable fallback.
+
 Older releases are listed in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Heads up
