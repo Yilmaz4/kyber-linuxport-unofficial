@@ -440,6 +440,26 @@ if [ -f "$APPDIR/usr/bin/lib/libsentry.so" ]; then
   patchelf --set-rpath '$ORIGIN/../../lib' "$APPDIR/usr/bin/lib/libsentry.so"
 fi
 
+# media_kit's video plugin NEEDs libmpv.so.2, which linuxdeploy bundled only
+# into usr/lib (it pulls in the whole ffmpeg/libass cluster). Flutter leaves a
+# build-machine-absolute RUNPATH on this plugin (.../flutter/ephemeral) which
+# does not exist on the target, and DT_RUNPATH does not propagate to transitive
+# deps, so the plugin can only find libmpv via its own RUNPATH. Without this the
+# launcher dies at startup on hosts without system libmpv (SteamOS) with
+# "libmpv.so.2: cannot open shared object file".
+#
+# Scope this to the media_kit video plugin ONLY. Do NOT loop over every plugin:
+# linuxdeploy also copied duplicate Flutter engine/plugin libs (libflutter_-
+# linux_gtk.so, libsentry.so, ...) into usr/lib, and adding usr/lib to an
+# unrelated plugin's RUNPATH makes it pull a second copy of those, which double-
+# loads the engine and segfaults at startup (crashpad then fires). $ORIGIN comes
+# first so the shared Flutter/GTK libs still resolve from usr/bin/lib (the same
+# instances the main binary loaded); only the unique libmpv comes from usr/lib.
+_mkvp="$APPDIR/usr/bin/lib/libmedia_kit_video_plugin.so"
+if [ -f "$_mkvp" ]; then
+  patchelf --set-rpath '$ORIGIN:$ORIGIN/../../lib' "$_mkvp"
+fi
+
 echo "==> Building AppImage"
 # AppImage runtime selection.
 #

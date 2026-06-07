@@ -21,6 +21,14 @@ _kyber_cachyos_hint_main() {
     id="$(. /etc/os-release 2>/dev/null && printf '%s' "${ID:-}")"
     id_like="$(. /etc/os-release 2>/dev/null && printf '%s' "${ID_LIKE:-}")"
 
+    # SteamOS is Arch-based (ID=steamos, ID_LIKE=arch) but has a read-only,
+    # immutable root where "sudo pacman -S" is not actionable: it needs
+    # steamos-readonly disable, the pacman keyring is not initialised, and any
+    # package installed that way is wiped on the next SteamOS image update.
+    # Showing the pacman hint there is misleading, so skip it. Steam Deck gets
+    # its own guidance from kyber-steamdeck-hint.sh.
+    [ "$id" = "steamos" ] && return 0
+
     # CachyOS/Manjaro/EndeavourOS report ID_LIKE=arch, vanilla Arch
     # reports ID=arch. Anything else is not our concern here.
     local is_arch=0
