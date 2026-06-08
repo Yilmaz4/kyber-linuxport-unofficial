@@ -23,11 +23,12 @@ forever on sandboxed browsers and Steam Deck, a manual code fallback covers
 the case where the browser callback never arrives, and a game launch that
 stops silently now reports why it ended.
 
-Steam Deck / SteamOS: a test build,
-[v0.1.0-beta.6.4.1](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.1),
-fixes a startup crash specific to the Deck and is offered as a pre-release.
-It is not the recommended build for everyone yet; if it misbehaves, 6.3 is
-the stable fallback.
+Steam Deck / SteamOS: a newer test build,
+[v0.1.0-beta.6.4.2](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.2),
+improves the first-launch Proton download and the EA browser launch, and fixes
+startup on fresh installs without a system libmpv or JACK. Offered as a
+pre-release; if it misbehaves, 6.3 is the stable fallback. On rolling Arch and
+CachyOS it also needs the nettle3 package, which the launcher points out.
 
 Older releases are listed in [`CHANGELOG.md`](CHANGELOG.md).
 
@@ -60,7 +61,7 @@ sudo apt install libgtk-3-0 libfuse2 librsvg2-2 libnotify4 gstreamer1.0-plugins-
 Arch, CachyOS:
 
 ```bash
-sudo pacman -S --needed gtk3 fuse2 librsvg libnotify gst-plugins-bad gst-plugins-ugly gst-libav zenity gamemode
+sudo pacman -S --needed gtk3 fuse2 librsvg libnotify gst-plugins-bad gst-plugins-ugly gst-libav zenity gamemode nettle3
 ```
 
 Fedora: the equivalent gtk3, fuse, librsvg2, libnotify and gstreamer1
@@ -73,7 +74,10 @@ without a system webkit such as the Steam Deck.) The gstreamer plugins
 make the EA login splash video play (silent without them, not fatal).
 zenity drives the first-start dialog. gamemode is optional but recommended,
 it keeps the CPU governor on performance for smoother frames. libmpv
-is bundled inside the AppImage, you do not install it yourself.
+is bundled inside the AppImage, you do not install it yourself. nettle3 is
+only needed on rolling Arch/CachyOS, which now ships nettle 4.0 (libnettle.so.9);
+without the libnettle.so.8 it provides the launcher will not start, and it
+shows a dialog telling you so.
 
 ## Install
 
@@ -94,7 +98,9 @@ package manager.
 
 Tested on Ubuntu 24.04 with an Nvidia RTX 3060. Other distros should work
 since the AppImage bundles its own runtime, but I haven't verified every
-one personally.
+one personally. The build needs glibc 2.38 or newer, so older releases
+(Ubuntu 22.04, Debian 12, SteamOS 3.6) cannot run it; use 24.04+, Fedora,
+SteamOS 3.7+ or Bazzite.
 
 On Arch or CachyOS you can install from the AUR instead:
 

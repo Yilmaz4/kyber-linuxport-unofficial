@@ -139,6 +139,27 @@ rm -f "$APPDIR"/usr/lib/libgnutls.so.* \
       "$APPDIR"/usr/lib/libhogweed.so.* \
       "$APPDIR"/usr/lib/libnettle.so.* 2>/dev/null || true
 
+# Bundle libjack. media_kit's libmpv/libavdevice were built with JACK output
+# support, so they hard-NEED libjack.so.0, but JACK is not installed by default
+# on any consumer distro (the dev box had it, which masked the gap). linuxdeploy
+# leaves it out via its excludelist, so a fresh Ubuntu/Fedora/Arch fails to start
+# with "libjack.so.0: cannot open shared object file". Pull it in plus its libdb
+# dep, RUNPATH=$ORIGIN so the bundled libjack finds the bundled libdb beside it.
+echo "==> Bundling libjack (+libdb) for hosts without JACK"
+for _jl in libjack.so.0 libdb-5.3.so; do
+  _src="$(ldconfig -p 2>/dev/null | awk -v n="$_jl" '$1==n && !f{print $NF; f=1}')"
+  [ -n "$_src" ] && [ -f "$_src" ] && cp -L "$_src" "$APPDIR/usr/lib/$_jl"
+done
+[ -f "$APPDIR/usr/lib/libjack.so.0" ] && patchelf --set-rpath '$ORIGIN' "$APPDIR/usr/lib/libjack.so.0" 2>/dev/null || true
+
+# Drop the AVIF gdk-pixbuf loader. It hard-NEEDs libavif plus a large AV1 codec
+# stack (dav1d/aom/rav1e/SvtAv1/gav1/abseil) that linuxdeploy did not bundle, so
+# on a system without libavif the loader cannot load. The launcher's UI uses no
+# AVIF images, so remove the loader instead of bundling ~25 extra libraries. The
+# AppRun hook regenerates loaders.cache at runtime, so it simply won't be listed.
+rm -f "$APPDIR"/usr/lib/libpixbufloader-avif.so \
+      "$APPDIR"/usr/lib/gdk-pixbuf-2.0/*/loaders/libpixbufloader-avif.so 2>/dev/null || true
+
 echo "==> Patching GTK AppRun hook with runtime loaders.cache regen"
 # linuxdeploy regenerates apprun-hooks/linuxdeploy-plugin-gtk.sh on every
 # run, dropping any manual edits. The default hook ships a loaders.cache
@@ -264,6 +285,28 @@ inject = (
     '\n'
 )
 if needle in src and 'KYBER_SELF_INSTALL_HOOK' not in src:
+    src = src.replace(needle, inject + needle, 1)
+    p.write_text(src)
+PYEOF
+fi
+
+# Snapshot the host XDG_DATA_DIRS before the GTK hook overwrites it, so
+# Maxima's browser-open (login.rs open_login_url) can restore the unpolluted
+# value when it spawns xdg-open for the EA sign-in. Without this the code falls
+# back to sanitising the live, hook-polluted value. Patched in before the GTK
+# source line, idempotent via sentinel.
+if [ -f "$APPRUN" ] && ! grep -q "KYBER_ORIG_XDG_DATA_DIRS" "$APPRUN"; then
+  python3 - "$APPRUN" <<'PYEOF'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+src = p.read_text()
+needle = 'source "$this_dir"/apprun-hooks/"linuxdeploy-plugin-gtk.sh"'
+inject = (
+    '# KYBER_ORIG_XDG_DATA_DIRS - host XDG_DATA_DIRS before the GTK hook edits it\n'
+    'export KYBER_ORIG_XDG_DATA_DIRS="${XDG_DATA_DIRS:-}"\n'
+    '\n'
+)
+if needle in src and 'KYBER_ORIG_XDG_DATA_DIRS' not in src:
     src = src.replace(needle, inject + needle, 1)
     p.write_text(src)
 PYEOF

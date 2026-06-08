@@ -5,6 +5,60 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6.4.2] - 2026-06-08 - Proton Download & libmpv
+
+Follow-up to beta.6.4.1. Makes the first-launch GE-Proton download survive
+slow links and closed windows, opens the EA sign-in in the real browser
+instead of the software store on SteamOS, and fixes a startup crash on
+distributions that do not ship libmpv. Still a test/pre-release; if it
+misbehaves, beta.6.3 stays a safe fallback.
+
+### Fixed
+
+- The launcher crashed on startup on distributions without a system libmpv
+  (SteamOS, minimal Fedora) with "libmpv.so.2: cannot open shared object
+  file". libmpv is bundled, but the media_kit video plugin could not find it,
+  because its library path still pointed at a build-machine directory that does
+  not exist on the target. The plugin's RUNPATH now points at the bundled copy.
+- The launcher also failed to start on a fresh install with "libjack.so.0:
+  cannot open shared object file". media_kit's libmpv is built with JACK output
+  support, so it needs libjack, which no consumer distro installs by default
+  (the dev machine had it, which hid the gap). libjack and its libdb dependency
+  are now bundled.
+- The first-launch GE-Proton download (about 516 MB) read the whole archive
+  into RAM and only wrote it to disk at the end, with no progress shown. On
+  Steam Deck and slow connections the launch flow looked frozen, and closing
+  the apparently-stuck window discarded everything, so the next Play press
+  re-downloaded from the start every time. The download now streams to disk in
+  1 MB chunks and resumes an interrupted file with an HTTP Range request.
+- On SteamOS the EA sign-in opened the KDE Discover software store instead of
+  the default browser, because the AppImage's bundled GTK environment leaked
+  into the browser launch. The sign-in URL now opens with a cleaned environment
+  (Flatpak browser export dirs included), so the real default browser opens.
+
+### Added
+
+- The start-game dialog shows a progress bar and byte counter during the
+  first-launch Proton download instead of looking frozen.
+- A system GE-Proton 10.x in compatibilitytools.d is auto-detected and routed
+  to, which skips the 516 MB download on first launch.
+
+### Changed
+
+- On SteamOS the package-install hint is skipped, since pacman is not usable on
+  the immutable read-only root and changes would be wiped on the next image
+  update.
+
+### Known limitations
+
+- On rolling Arch/CachyOS with nettle 4.0 (libnettle.so.9) the launcher does not
+  start until the nettle3 compatibility package (which provides libnettle.so.8)
+  is installed: `sudo pacman -S nettle3`. The launcher now shows a dialog
+  pointing this out. A self-contained fix is planned for a later build.
+- Distributions older than glibc 2.38 (Ubuntu 22.04, Debian 12, SteamOS 3.6)
+  cannot run this build. Tested on Ubuntu 24.04+, Fedora, SteamOS 3.7+ and
+  Bazzite.
+
 ## [0.1.0-beta.6.4.1] - 2026-06-06 - Steam Deck Fixes
 
 Follow-up to beta.6.4. The launcher still failed to start on Steam Deck and

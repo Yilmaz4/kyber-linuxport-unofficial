@@ -39,6 +39,26 @@ _kyber_cachyos_hint_main() {
     case " $id_like " in *' arch '*) is_arch=1 ;; esac
     [ "$is_arch" = 0 ] && return 0
 
+    # nettle 4.0 (current Arch/CachyOS) bumped libnettle to .so.9, but the
+    # bundled ffmpeg/srt crypto consumers need libnettle.so.8, so the launcher
+    # cannot start here without the nettle3 compat package. Detect the missing
+    # .so.8 and point the user at the one-line fix. The check self-clears once
+    # nettle3 is installed, so no marker is needed. SteamOS (nettle 3.x, has
+    # .so.8) is already excluded above, so this never fires on the Deck. This is
+    # only a runtime hint; it does not touch the bundled crypto.
+    if ! ldconfig -p 2>/dev/null | grep -q 'libnettle\.so\.8'; then
+        if command -v zenity >/dev/null 2>&1 || command -v kdialog >/dev/null 2>&1; then
+            local ntitle="Kyber (Linux Port)"
+            local nbody
+            nbody="$(printf 'This system ships nettle 4.0 (libnettle.so.9), but the launcher needs libnettle.so.8 and will not start without it.\n\nInstall the compatibility package, then start the launcher again:\n\nsudo pacman -S nettle3')"
+            if command -v zenity >/dev/null 2>&1; then
+                LC_ALL=C.UTF-8 LANGUAGE=en zenity --warning --no-wrap --title="$ntitle" --text="$nbody" 2>/dev/null || true
+            else
+                LC_ALL=C.UTF-8 LANGUAGE=en kdialog --title "$ntitle" --sorry "$nbody" 2>/dev/null || true
+            fi
+        fi
+    fi
+
     command -v pacman >/dev/null 2>&1 || return 0
 
     # winegstreamer pulls bad/ugly/libav for the Origin login splash.
