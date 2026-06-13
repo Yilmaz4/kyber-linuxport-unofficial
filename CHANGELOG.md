@@ -5,6 +5,92 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6.4.4] - 2026-06-12 - Registry Fast Path
+
+Follow-up to the 6.4.3 Deck testing round. A Deck tester log showed the
+launch never reaching the game: every registry call before the launch stalled
+for about five minutes, and the full setup batch needed over 90 minutes. The
+registry state is now verified by reading the prefix files directly, which
+needs no Wine call at all, and the launch flow records enough diagnostics to
+tell where it stalls if it still does. It also keeps the first launch from
+downloading umu's Steam Linux Runtime on the Deck by reusing the copy Steam
+already ships there.
+
+### Fixed
+
+- Steam Deck: the launch could sit in the pre-launch registry setup for over
+  an hour. The setup verified and wrote registry keys through wine/umu calls
+  that each stalled for minutes on the Deck. The launcher now reads
+  user.reg/system.reg directly and skips the whole batch when the values are
+  already in place, so a warm launch does not touch Wine for the registry
+  setup at all. The same applies to the locale re-lock that runs right before
+  the game spawns.
+- The direct registry file patch only covered the 64-bit view of the Origin
+  client keys. 32-bit readers inside the prefix now find them too, matching
+  what a real registry write would have produced.
+- Steam Deck: the first game launch still had umu download its own copy of the
+  Steam Linux Runtime (around 300 MB), which loops on a slow or unstable Deck
+  connection and never lets the game start. Before the first launch the launcher
+  now mirrors the SteamLinuxRuntime_sniper that Steam already keeps on the Deck
+  into umu's runtime directory; umu validates that copy and downloads nothing.
+  It falls back to umu's own download when no Steam copy is found, and does
+  nothing on systems that are not a Deck.
+
+### Added
+
+- Launch diagnostics: the log now names the wine runner used for registry
+  calls, warns when a helper call takes longer than a minute, and reports
+  when a leftover umu lock from a previous session is blocking the launch.
+  The wine wrapper records its routing decisions (Deck detection inputs,
+  resolved wine binary, exit codes and durations) to
+  `~/.local/share/maxima/wine/wrapper-diag.log` for bug reports.
+
+## [0.1.0-beta.6.4.3] - 2026-06-10 - Steam Deck Launch & Browser
+
+Steam Deck focused follow-up to beta.6.4.2. Runs the launch-time registry
+setup directly through Wine on the Deck so the first launch no longer hangs on
+umu's runtime download, opens the NexusMods sign-in in the real browser instead
+of the software store, stops the launcher from giving up on a game that is
+still loading, and captures the Proton output when a launch ends without the
+game appearing. Still a test/pre-release; beta.6.3 stays the safe fallback.
+
+### Fixed
+
+- Steam Deck: the first game launch could get stuck on "downloading umu
+  runtime" on slow or unstable connections. The registry setup that runs before
+  a launch went through umu, which forced umu to download its own copy of the
+  Steam Linux Runtime on the first call. That setup now runs directly through
+  Wine on the Deck, so it no longer triggers the runtime download, and umu is
+  told not to re-check its runtime.
+- Steam Deck: the NexusMods sign-in opened the KDE software store (Discover) on
+  the Firefox page instead of launching the browser. It now opens through the
+  same sanitized path the EA sign-in already uses, which reaches the real
+  default browser. The EA sign-in was unaffected.
+- Steam Deck: the launcher could report a game as stopped a few seconds after
+  pressing Play while it was still cold-loading. The helper that starts Proton
+  exits early by design, and the game process is not visible to the host-side
+  check inside the Steam container. A grace window now keeps the launch active
+  until the game connects.
+- Setup: the NexusMods step could be skipped during first-time setup. After the
+  EA sign-in the walkthrough sometimes stayed on the EA step and never moved on,
+  so finishing setup skipped NexusMods. The step now follows the actual sign-in
+  state and appears as soon as EA is signed in.
+- Steam Deck: the sign-in code box flashed on the login screen at every start
+  while the saved session was being re-checked, as if the launcher was asking
+  for a code. It now appears only after a sign-in has been waiting a few
+  seconds, so a normal start no longer shows it.
+- The launcher now stops with a clear message when Battlefront II has no Steam
+  Proton prefix (the game was never launched through Steam, or a custom game
+  path points at a non-Steam copy). Battlefront II runs inside the prefix Steam
+  creates for it, and without it the launch could only fail with a cryptic
+  Origin error. The message explains what to do instead of failing silently.
+
+### Added
+
+- When a game launch ends without the game appearing, the launcher folds the
+  Proton/Wine output into the exported log, so the reason is visible in a log
+  export instead of being discarded.
+
 ## [0.1.0-beta.6.4.2] - 2026-06-08 - Proton Download & libmpv
 
 Follow-up to beta.6.4.1. Makes the first-launch GE-Proton download survive
