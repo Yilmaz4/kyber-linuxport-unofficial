@@ -57,6 +57,10 @@ _kyber_cachyos_hint_main() {
                 LC_ALL=C.UTF-8 LANGUAGE=en kdialog --title "$ntitle" --sorry "$nbody" 2>/dev/null || true
             fi
         fi
+        # Without libnettle.so.8 the launcher cannot start, so the optional
+        # GStreamer hint below would just be a second dialog for nothing. Stop
+        # here; the gst check fires cleanly on the next start once nettle3 is in.
+        return 0
     fi
 
     command -v pacman >/dev/null 2>&1 || return 0
