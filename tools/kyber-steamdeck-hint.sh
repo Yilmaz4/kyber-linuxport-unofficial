@@ -43,7 +43,7 @@ _kyber_steamdeck_hint_main() {
 
     local title="Kyber (Linux Port) - Steam Deck"
     local body
-    body="$(printf 'Running on SteamOS / Steam Deck.\n\nUse Desktop Mode for the launcher.\n\nEA login: the launcher opens the EA sign-in page in your browser. On Steam Deck the browser is usually a Flatpak app, which does not hand the login back to the launcher automatically, so the login can look stuck.\n\nIf that happens, use the field under "Browser did not return to the launcher?" on the login screen: after signing in, copy the link or code the browser tried to open and paste it there.\n\nAlternative: run the launcher inside a Distrobox container with webkit2gtk installed.\n\n(This note is shown once.)')"
+    body="$(printf 'Running on SteamOS / Steam Deck.\n\nUse Desktop Mode for the launcher.\n\nEA login: the launcher opens the EA sign-in page in your browser. On Steam Deck the browser is usually a Flatpak app, which does not hand the login back to the launcher automatically, so the login can look stuck.\n\nIf that happens, use the field under "Browser did not return to the launcher?" on the login screen: after signing in, copy the link or code the browser tried to open and paste it there.\n\nAlternative: run the launcher inside a Distrobox container with a normal (non-Flatpak) browser, where the callback can work automatically.\n\n(This note is shown once.)')"
 
     if command -v zenity >/dev/null 2>&1; then
         LC_ALL=C.UTF-8 LANGUAGE=en zenity --info --no-wrap --title="$title" --text="$body" 2>/dev/null || true
