@@ -5,6 +5,37 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6.4.5] - 2026-06-15 - Mod Downloads & Fixes
+
+A batch of upstream launcher fixes backported into the Linux port, plus AppImage
+robustness work. Mods packed inside a subfolder of a download now install, a
+single unreachable proxy no longer empties the proxy list, and a possible
+startup crash on minimal systems without a system librsvg is fixed.
+
+### Fixed
+
+- Mods packed inside a subfolder of a downloaded archive were silently skipped;
+  they now install (nested-archive detection).
+- A single unreachable proxy left the whole proxy list empty. Failed pings are
+  now handled, and joining a server waits for the proxy pings to finish instead
+  of erroring with no proxy available.
+- The server browser search now clears when switching tabs, so servers no longer
+  appear missing because of a stale filter.
+- Corrupted mod collections now show a warning, and a working copy is preferred
+  over a corrupted one when joining a server.
+- The launcher window can be dragged across the full width of the title bar.
+- AppImage: fixed a possible startup crash on systems without a system librsvg.
+  The bundled SVG pixbuf loader could not reach the bundled librsvg (its RUNPATH
+  was only its own directory); usr/lib is now on the loader's RUNPATH. Dropped
+  the now orphaned libavif and collapsed duplicate librsvg copies to symlinks.
+- Steam Deck: corrected a login hint that still mentioned webkit2gtk.
+- Arch/CachyOS: when libnettle.so.8 is missing, the launcher no longer shows a
+  second, irrelevant GStreamer dialog after the nettle warning.
+
+### Added
+
+- Support for the bypass player limit entitlement.
+
 ## [0.1.0-beta.6.4.4] - 2026-06-12 - Registry Fast Path
 
 Follow-up to the 6.4.3 Deck testing round. A Deck tester log showed the

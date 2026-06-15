@@ -15,26 +15,22 @@ not to upstream Kyber.
 ## Latest release
 
 The latest stable build is
-[v0.1.0-beta.6.3](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.3)
-from 2026-06-03.
+[v0.1.0-beta.6.4.5](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.5)
+from 2026-06-15.
 
-v0.1.0-beta.6.3 improves EA login reliability: the sign-in no longer hangs
-forever on sandboxed browsers and Steam Deck, a manual code fallback covers
-the case where the browser callback never arrives, and a game launch that
-stops silently now reports why it ended.
+v0.1.0-beta.6.4.5 backports a batch of upstream launcher fixes and adds AppImage
+robustness. Mods packed inside a subfolder of a download now install, a single
+unreachable proxy no longer empties the proxy list, corrupted collections show a
+warning and a working copy is preferred when joining, the server browser search
+clears on tab switch, and the window can be dragged by the full title bar. It
+also fixes a possible startup crash on minimal systems without a system librsvg.
 
-Steam Deck / SteamOS: a newer test build,
-[v0.1.0-beta.6.4.4](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.4),
-skips the pre-launch registry setup entirely when the prefix files already
-carry the needed values (a Deck tester saw that setup stall for over an hour),
-reuses the Steam Linux Runtime that Steam already ships on the Deck instead of
-having umu download its own copy on the first launch, opens the NexusMods
-sign-in in the real browser, and no longer gives up on a game that is still
-loading. It also fixes the first-run NexusMods setup step,
-a Deck login-screen flicker, shows a clear message when Battlefront II has no
-Steam Proton prefix, and writes launch diagnostics for bug reports. Offered as
-a pre-release; if it misbehaves, 6.3 is the stable fallback. On rolling Arch
-and CachyOS it also needs the nettle3 package, which the launcher points out.
+It carries the Steam Deck launch work from 6.4.4: the pre-launch registry setup
+is skipped when the prefix files already carry the needed values (a Deck tester
+saw that setup stall for over an hour), and the first launch reuses the Steam
+Linux Runtime that Steam already ships on the Deck instead of having umu download
+its own copy. On rolling Arch and CachyOS it needs the nettle3 package, which the
+launcher points out.
 
 Older releases are listed in [`CHANGELOG.md`](CHANGELOG.md).
 
