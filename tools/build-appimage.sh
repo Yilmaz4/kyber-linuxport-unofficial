@@ -159,6 +159,9 @@ done
 # AppRun hook regenerates loaders.cache at runtime, so it simply won't be listed.
 rm -f "$APPDIR"/usr/lib/libpixbufloader-avif.so \
       "$APPDIR"/usr/lib/gdk-pixbuf-2.0/*/loaders/libpixbufloader-avif.so 2>/dev/null || true
+# With the AVIF loader gone, libavif itself is orphaned (nothing else bundled
+# NEEDs it). Drop it too. Verified: no bundled .so has libavif in its NEEDED.
+rm -f "$APPDIR"/usr/lib/libavif.so.* 2>/dev/null || true
 
 echo "==> Patching GTK AppRun hook with runtime loaders.cache regen"
 # linuxdeploy regenerates apprun-hooks/linuxdeploy-plugin-gtk.sh on every
@@ -217,6 +220,27 @@ if [ -f "$SYS_LOADERS/libpixbufloader-svg.so" ] && [ ! -f "$APPDIR_LOADERS/libpi
     src="/lib/x86_64-linux-gnu/$lib"
     [ ! -f "$src" ] && src="/usr/lib/x86_64-linux-gnu/$lib"
     [ ! -e "$APPDIR/usr/lib/$lib" ] && [ -f "$src" ] && cp -L "$src" "$APPDIR/usr/lib/" || true
+  done
+fi
+
+# The SVG loader's RUNPATH is $ORIGIN (its own loaders/ dir), but its NEEDED
+# librsvg-2.so.2 sits three levels up in usr/lib. With only $ORIGIN, the loader
+# resolves librsvg from the system; on a minimal distro without system librsvg
+# it silently fails and GTK aborts on the first image-missing.svg fallback. Add
+# usr/lib to the loader's RUNPATH so the bundled librsvg is found there too.
+if [ -f "$APPDIR_LOADERS/libpixbufloader-svg.so" ]; then
+  patchelf --set-rpath '$ORIGIN:$ORIGIN/../../../' \
+    "$APPDIR_LOADERS/libpixbufloader-svg.so" 2>/dev/null || true
+fi
+
+# linuxdeploy plus the manual copy above can leave librsvg as several identical
+# real files (librsvg-2.so, librsvg-2.so.2, librsvg-2.so.<ver>). Collapse the
+# aliases to symlinks onto the SONAME file (librsvg-2.so.2, the name consumers
+# NEED) to drop the duplicate inodes. Keep the SONAME file as the real one.
+if [ -f "$APPDIR/usr/lib/librsvg-2.so.2" ] && [ ! -L "$APPDIR/usr/lib/librsvg-2.so.2" ]; then
+  for _rsvg_alias in "$APPDIR"/usr/lib/librsvg-2.so "$APPDIR"/usr/lib/librsvg-2.so.2.*; do
+    [ -f "$_rsvg_alias" ] && [ ! -L "$_rsvg_alias" ] && \
+      ln -sf librsvg-2.so.2 "$_rsvg_alias"
   done
 fi
 
