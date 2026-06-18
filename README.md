@@ -14,12 +14,15 @@ not to upstream Kyber.
 
 ## Latest release
 
-The latest stable build is
-[v0.1.0-beta.6.4.5](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.5)
-from 2026-06-15.
+The latest build is
+[v0.1.0-beta.6.4.6](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.6)
+from 2026-06-18.
 
-v0.1.0-beta.6.4.5 backports a batch of upstream launcher fixes and adds AppImage
-robustness. Mods packed inside a subfolder of a download now install, a single
+v0.1.0-beta.6.4.6 adds an in-app Native Wayland toggle (Settings -> Mods /
+Proton / Wayland); X11 stays the default, the toggle only shows on a Wayland
+session and applies after a restart. It carries everything from 6.4.5: a batch
+of upstream launcher fixes and the AppImage startup and slimming fixes. Mods
+packed inside a subfolder of a download now install, a single
 unreachable proxy no longer empties the proxy list, corrupted collections show a
 warning and a working copy is preferred when joining, the server browser search
 clears on tab switch, and the window can be dragged by the full title bar. It
@@ -182,16 +185,19 @@ wineserver and retry" action, but cleanly exited beats forced-kill.
 
 ### Native Wayland
 
-The launcher runs on X11 (XWayland) by default, which is the stable
-path. On a Wayland session you can try the native backend for smoother
-rendering:
+The launcher runs on X11 (XWayland) by default, which is the stable path. On a
+Wayland session you can switch to the native backend under Settings -> Mods /
+Proton / Wayland ("Native Wayland", experimental). It applies after a restart.
+The toggle only appears on a Wayland session; on X11 there is no Wayland display
+to use, so it is hidden.
+
+If the native backend glitches or crashes, turn the toggle back off (or remove
+`~/.config/kyber-linuxport/backend`) and it falls back to X11. The manual
+override still works too:
 
 ```bash
 GDK_BACKEND=wayland ~/Applications/KyberLinuxPort-x86_64.AppImage
 ```
-
-If the window glitches or crashes, drop the variable and it falls back
-to X11.
 
 ## Build
 

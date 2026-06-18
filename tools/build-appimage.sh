@@ -103,8 +103,8 @@ for size in 16 24 32 48 64 96 128 192 256 512; do
 done
 mkdir -p "$APPDIR/usr/share/icons/hicolor/scalable/apps"
 cp "$LOGO_SVG" "$APPDIR/usr/share/icons/hicolor/scalable/apps/kyber-linux.svg"
-# linuxdeploy and appimagetool expect the desktop-icon at the AppDir root —
-# the 256 raster works as the canonical .DirIcon.
+# linuxdeploy and appimagetool expect the desktop-icon at the AppDir root.
+# The 256 raster works as the canonical .DirIcon.
 cp "$APPDIR/usr/share/icons/hicolor/256x256/apps/kyber-linux.png" \
   "$APPDIR/kyber-linux.png"
 
@@ -261,6 +261,12 @@ echo "==> Bundling Kyber self-install AppRun hook"
 cp "$TOOLS/kyber-self-install.sh" "$APPDIR/apprun-hooks/kyber-self-install.sh"
 chmod +x "$APPDIR/apprun-hooks/kyber-self-install.sh"
 
+echo "==> Bundling Kyber backend-pref AppRun hook"
+# kyber-backend-pref.sh applies the in-app "Native Wayland" toggle. Runs BEFORE
+# the GTK hook so its GDK_BACKEND="${GDK_BACKEND:-x11}" keeps whatever we export.
+cp "$TOOLS/kyber-backend-pref.sh" "$APPDIR/apprun-hooks/kyber-backend-pref.sh"
+chmod +x "$APPDIR/apprun-hooks/kyber-backend-pref.sh"
+
 echo "==> Bundling Kyber CachyOS hint AppRun hook"
 # kyber-cachyos-hint.sh shows a one-shot zenity dialog on Arch-family
 # systems if the optional GStreamer/Vulkan packages are missing. No-op
@@ -309,6 +315,27 @@ inject = (
     '\n'
 )
 if needle in src and 'KYBER_SELF_INSTALL_HOOK' not in src:
+    src = src.replace(needle, inject + needle, 1)
+    p.write_text(src)
+PYEOF
+fi
+
+# Native Wayland toggle: source the backend-pref hook BEFORE the GTK hook so the
+# exported GDK_BACKEND survives the GTK hook's ${GDK_BACKEND:-x11}. Idempotent.
+if [ -f "$APPRUN" ] && ! grep -q "KYBER_BACKEND_PREF" "$APPRUN"; then
+  python3 - "$APPRUN" <<'PYEOF'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+src = p.read_text()
+needle = 'source "$this_dir"/apprun-hooks/"linuxdeploy-plugin-gtk.sh"'
+inject = (
+    '# KYBER_BACKEND_PREF\n'
+    'if [ -f "$this_dir"/apprun-hooks/kyber-backend-pref.sh ]; then\n'
+    '    source "$this_dir"/apprun-hooks/kyber-backend-pref.sh || true\n'
+    'fi\n'
+    '\n'
+)
+if needle in src and 'KYBER_BACKEND_PREF' not in src:
     src = src.replace(needle, inject + needle, 1)
     p.write_text(src)
 PYEOF

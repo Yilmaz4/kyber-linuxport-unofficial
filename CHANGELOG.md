@@ -5,6 +5,27 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6.4.6] - 2026-06-18 - Native Wayland Toggle
+
+Adds an in-app toggle to run the launcher on the native Wayland backend instead
+of X11/XWayland. X11 stays the default; the toggle only appears on a Wayland
+session and takes effect after a restart.
+
+### Added
+
+- Settings -> Mods / Proton / Wayland: "Native Wayland (Experimental)" toggle.
+  It records a backend preference that the AppImage applies before GTK starts,
+  so the launcher comes up on native Wayland after a restart. Hidden on X11
+  sessions, where forcing the Wayland backend would only fail to start. Turn it
+  off (or remove ~/.config/kyber-linuxport/backend) to go back to X11.
+
+### Changed
+
+- The AUR package is now `kyber-launcher-unofficial-appimage` (was the older
+  `-inofficial-` spelling). The pacman-managed `/opt` install no longer triggers
+  the AppImage self-install, so it stops duplicating the image into
+  `~/Applications`.
+
 ## [0.1.0-beta.6.4.5] - 2026-06-15 - Mod Downloads & Fixes
 
 A batch of upstream launcher fixes backported into the Linux port, plus AppImage
