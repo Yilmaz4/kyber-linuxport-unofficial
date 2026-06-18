@@ -107,8 +107,12 @@ SteamOS 3.7+ or Bazzite.
 On Arch or CachyOS you can install from the AUR instead:
 
 ```bash
-yay -S kyber-launcher-inofficial-appimage   # or: paru -S kyber-launcher-inofficial-appimage
+yay -S kyber-launcher-unofficial-appimage   # or: paru -S kyber-launcher-unofficial-appimage
 ```
+
+The AUR package pulls in the required dependencies for you, including nettle3
+on rolling Arch/CachyOS, so the manual pacman step above is only needed if you
+run the downloaded AppImage directly.
 
 ## Steam Deck / SteamOS
 
