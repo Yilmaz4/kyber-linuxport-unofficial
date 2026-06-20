@@ -15,18 +15,23 @@ not to upstream Kyber.
 ## Latest release
 
 The latest build is
-[v0.1.0-beta.6.4.6](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.6)
-from 2026-06-18.
+[v0.1.0-beta.6.4.7](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.7)
+from 2026-06-20.
 
-v0.1.0-beta.6.4.6 adds an in-app Native Wayland toggle (Settings -> Mods /
-Proton / Wayland); X11 stays the default, the toggle only shows on a Wayland
-session and applies after a restart. It carries everything from 6.4.5: a batch
-of upstream launcher fixes and the AppImage startup and slimming fixes. Mods
-packed inside a subfolder of a download now install, a single
-unreachable proxy no longer empties the proxy list, corrupted collections show a
-warning and a working copy is preferred when joining, the server browser search
-clears on tab switch, and the window can be dragged by the full title bar. It
-also fixes a possible startup crash on minimal systems without a system librsvg.
+v0.1.0-beta.6.4.7 fixes a first-start crash on the intro video for fresh installs
+on systems that have a system libmpv installed. The bundled libmpv is now pinned
+so the host copy is never loaded, and the intro video is kept on all
+distributions.
+
+It carries everything from 6.4.6: an in-app Native Wayland toggle (Settings ->
+Mods / Proton / Wayland); X11 stays the default, the toggle only shows on a
+Wayland session and applies after a restart. From 6.4.5 it brings a batch of
+upstream launcher fixes and the AppImage startup and slimming fixes. Mods packed
+inside a subfolder of a download now install, a single unreachable proxy no
+longer empties the proxy list, corrupted collections show a warning and a working
+copy is preferred when joining, the server browser search clears on tab switch,
+and the window can be dragged by the full title bar. It also fixes a possible
+startup crash on minimal systems without a system librsvg.
 
 It carries the Steam Deck launch work from 6.4.4: the pre-launch registry setup
 is skipped when the prefix files already carry the needed values (a Deck tester

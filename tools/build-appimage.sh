@@ -430,6 +430,29 @@ if needle in src and 'KYBER_MAXIMA_PACKAGED' not in src:
 PYEOF
 fi
 
+# media_kit resolves libmpv by bare name, trying libmpv.so first. On a host with
+# an unversioned libmpv.so (the libmpv-dev symlink) that pulls the system libmpv
+# as a second image alongside the bundled libmpv.so.2, and mpv's option lookup
+# then crosses between the two and aborts on the first-start intro video. media_kit
+# honors LIBMPV_LIBRARY_PATH before the bare-name search, so pin it to the bundled
+# lib in the live mount. Set unconditionally; a wrong user value brings the crash back.
+if [ -f "$APPRUN" ] && ! grep -q "KYBER_LIBMPV_PATH" "$APPRUN"; then
+  python3 - "$APPRUN" <<'PYEOF'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+src = p.read_text()
+needle = '# KYBER_SELF_INSTALL_HOOK'
+inject = (
+    '# KYBER_LIBMPV_PATH\n'
+    'export LIBMPV_LIBRARY_PATH="$this_dir/usr/lib/libmpv.so.2"\n'
+    '\n'
+)
+if needle in src and 'KYBER_LIBMPV_PATH' not in src:
+    src = src.replace(needle, inject + needle, 1)
+    p.write_text(src)
+PYEOF
+fi
+
 # Quiet GTK input-method warnings (IBus / GTK modules missing) that look like
 # errors on minimal/immutable systems (Steam Deck etc.) but are harmless. Only
 # fallback-set with ${:-}, so a host with a real ibus/fcitx setup keeps it.

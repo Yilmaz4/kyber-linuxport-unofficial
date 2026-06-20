@@ -5,6 +5,22 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6.4.7] - 2026-06-20 - libmpv Load Fix
+
+Fixes a first-start crash on the intro video for fresh installs running on a host
+that has a system libmpv installed. The intro video is kept on all distributions.
+
+### Fixed
+
+- Crash right after login on the first launch (an mpv m_config_cache_from_shadow
+  assertion) on systems that carry an unversioned system libmpv.so, such as the
+  symlink shipped by libmpv-dev. The bundled media player resolved libmpv by bare
+  name and loaded the host libmpv as a second copy next to the bundled one; mpv's
+  option lookup then crossed between the two images and aborted on the intro
+  video. AppRun now pins the bundled libmpv through LIBMPV_LIBRARY_PATH, so the
+  host libmpv is never loaded and a single libmpv image is used regardless of
+  what the host has installed.
+
 ## [0.1.0-beta.6.4.6] - 2026-06-18 - Native Wayland Toggle
 
 Adds an in-app toggle to run the launcher on the native Wayland backend instead
