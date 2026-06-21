@@ -1,4 +1,6 @@
-# Kyber Linux Port (unofficial)
+<h1 align="center">
+  <img src="assets/header-banner.svg" alt="Kyber Linux Port - Unofficial Linux Port" width="560">
+</h1>
 
 Unofficial Linux build of the [Kyber](https://kyber.gg) mod launcher for
 Star Wars: Battlefront II (2017). The upstream launcher is Windows only,
