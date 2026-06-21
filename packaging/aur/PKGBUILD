@@ -1,5 +1,5 @@
 # Maintainer: simonlinuxcraft <simonlinuxcraft at users dot noreply dot github dot com>
-pkgname=kyber-launcher-bin
+pkgname=kyber-launcher-unofficial-appimage
 pkgver=2.0.0_beta9_6.4.7
 pkgrel=2
 epoch=
@@ -18,7 +18,7 @@ conflicts=(kyber-launcher-inofficial-appimage)
 replaces=(kyber-launcher-inofficial-appimage)
 backup=()
 options=(!debug)
-install=
+install="${pkgname}.install"
 changelog=
 source=("$pkgname-$pkgver.tar.gz::https://github.com/Yilmaz4/kyber-linuxport-unofficial/releases/download/$pkgver/$pkgver.tar.gz")
 noextract=()
@@ -30,31 +30,4 @@ package() {
     cp -r usr opt "$pkgdir/"
     mkdir -p "$pkgdir/usr/bin"
     ln -sf '../../opt/kyber/kyber_launcher' "$pkgdir/usr/bin/kyber_launcher"
-}
-
-post_install() {
-  update-mime-database usr/share/mime &>/dev/null
-  update-desktop-database -q
-
-  cat <<'MSG'
-This package no longer self-installs a copy into ~/Applications. If you ran an
-earlier version, these leftovers from the old behaviour may remain and can be
-removed by hand:
-    ~/Applications/KyberLinuxPort-x86_64.AppImage
-    ~/Applications/KyberLinuxPort.extracted/
-    ~/.local/share/applications/kyber-linuxport*.desktop
-    ~/.local/share/applications/kyber-bf2*.desktop
-The launcher now lives in /opt and is managed by pacman. If qrc:// login or
-nxm:// links still point at an old handler, repoint them at the packaged ones:
-    xdg-mime default kyber-linuxport-qrc.desktop x-scheme-handler/qrc
-    xdg-mime default kyber-linuxport-nxm.desktop x-scheme-handler/nxm
-MSG
-}
-
-post_upgrade() {
-  post_install "$1"
-}
-
-post_remove() {
-  post_install "$1"
 }
