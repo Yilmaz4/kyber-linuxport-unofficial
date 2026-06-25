@@ -1,4 +1,6 @@
-# Kyber Linux Port (unofficial)
+<h1 align="center">
+  <img src="assets/header-banner.svg" alt="Kyber Linux Port - Unofficial Linux Port" width="560">
+</h1>
 
 Unofficial Linux build of the [Kyber](https://kyber.gg) mod launcher for
 Star Wars: Battlefront II (2017). The upstream launcher is Windows only,
@@ -15,13 +17,21 @@ not to upstream Kyber.
 ## Latest release
 
 The latest build is
-[v0.1.0-beta.6.4.7](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.7)
-from 2026-06-20.
+[v0.1.0-beta.6.4.8](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.8)
+from 2026-06-25.
 
-v0.1.0-beta.6.4.7 fixes a first-start crash on the intro video for fresh installs
-on systems that have a system libmpv installed. The bundled libmpv is now pinned
-so the host copy is never loaded, and the intro video is kept on all
-distributions.
+v0.1.0-beta.6.4.8 hardens game launch. On the Steam Deck the launcher no longer
+hangs forever when a Wine helper call stalls (calls are now bounded, with a
+generous default so a first-run runtime download is not cut off), and the
+post-launch grace window is raised so a slow Deck is not refocused over the
+still-loading game. On systems older than glibc 2.38 it now shows a dialog and
+exits cleanly instead of crashing windowless. Starting or joining a game with a
+missing game directory (a moved custom path or an unmounted drive) now reports a
+clear error instead of crashing the launcher.
+
+v0.1.0-beta.6.4.7 fixed a first-start crash on the intro video for fresh installs
+on systems that have a system libmpv installed. The bundled libmpv is pinned so
+the host copy is never loaded, and the intro video is kept on all distributions.
 
 It carries everything from 6.4.6: an in-app Native Wayland toggle (Settings ->
 Mods / Proton / Wayland); X11 stays the default, the toggle only shows on a
@@ -118,9 +128,10 @@ On Arch or CachyOS you can install from the AUR instead:
 yay -S kyber-launcher-unofficial-appimage   # or: paru -S kyber-launcher-unofficial-appimage
 ```
 
-The AUR package pulls in the required dependencies for you, including nettle3
-on rolling Arch/CachyOS, so the manual pacman step above is only needed if you
-run the downloaded AppImage directly.
+The AUR package is a native binary build (contributed by Yilmaz4), not the
+AppImage, and pulls in its own dependencies. The manual pacman step above is
+only needed if you run the downloaded AppImage directly. The package keeps the
+`-appimage` name for now and will be renamed to `kyber-launcher-bin` at beta 10.
 
 ## Steam Deck / SteamOS
 

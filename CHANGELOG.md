@@ -5,6 +5,40 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6.4.8] - 2026-06-25 - Steam Deck & Launch Fixes
+
+Launch reliability across the board: the launcher no longer hangs forever on a
+stuck Wine helper, no longer crashes windowless on a too-old system, no longer
+refocuses over a still-loading game, and no longer panics when the configured
+game directory is missing.
+
+### Fixed
+
+- Launch could hang forever on the Steam Deck when a Wine helper call (registry
+  setup, inject, or DIP) stalled on a hung wineserver, umu.lock contention, or
+  an unfinished umu/SteamLinuxRuntime download. These calls are now bounded
+  (default 600s, override with KYBER_WINE_HELPER_TIMEOUT_SECS) and fail with a
+  clear error instead of leaving the user on an endless spinner. The bound is
+  generous on purpose so a fresh Deck's legitimate first-run runtime download is
+  not cut off; the game launch itself is never timed.
+- The app crashed on start with no window on systems older than glibc 2.38
+  (SteamOS 3.6, Ubuntu 22.04, Debian 12), showing only "GLIBC_2.38 not found" on
+  stderr. AppRun now checks glibc first and, on a too-old system, shows a dialog
+  explaining the requirement and aborts cleanly instead of crashing silently.
+  Bypass with KYBER_NO_GLIBC_GATE.
+- Starting the game could crash the launcher (a panicked worker thread reporting
+  "Failed to start child") when the resolved game directory did not exist, for
+  example a custom game path pointing at a moved folder or an unmounted drive.
+  The launch now checks the game directory up front and on a spawn failure
+  returns a clear error instead of panicking.
+
+### Changed
+
+- The post-launch grace window before the launcher considers the game stopped is
+  raised from 120s to 300s. A slow Steam Deck (cold prefix, BF2 on an SD card,
+  first GE-Proton unpack) could take over two minutes to reach its first
+  connection, and the launcher refocused over the still-loading game.
+
 ## [0.1.0-beta.6.4.7] - 2026-06-20 - libmpv Load Fix
 
 Fixes a first-start crash on the intro video for fresh installs running on a host

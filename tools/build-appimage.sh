@@ -290,6 +290,13 @@ echo "==> Bundling Kyber Vulkan pre-check AppRun hook"
 cp "$TOOLS/kyber-vulkan-precheck.sh" "$APPDIR/apprun-hooks/kyber-vulkan-precheck.sh"
 chmod +x "$APPDIR/apprun-hooks/kyber-vulkan-precheck.sh"
 
+echo "==> Bundling Kyber glibc pre-check AppRun hook"
+# kyber-glibc-precheck.sh aborts the launch with a clear message when the host
+# glibc is older than 2.38 (SteamOS 3.6, Ubuntu 22.04), instead of the bundled
+# binary crashing windowless with "GLIBC_2.38 not found".
+cp "$TOOLS/kyber-glibc-precheck.sh" "$APPDIR/apprun-hooks/kyber-glibc-precheck.sh"
+chmod +x "$APPDIR/apprun-hooks/kyber-glibc-precheck.sh"
+
 echo "==> Bundling kyber-playmode recovery script"
 # Recovery script for users whose inject keeps failing. AppRun catches
 # --playmode and runs this directly via Steam, no launcher in between.
@@ -535,6 +542,32 @@ inject = (
 if needle in src and 'KYBER_VULKAN_PRECHECK' not in src:
     src = src.replace(needle, inject + needle, 1)
     p.write_text(src)
+PYEOF
+fi
+
+# glibc gate. Patched in right after the `this_dir=` line so it runs first,
+# before any other hook or the app binary, and can abort a too-old host with a
+# message. Falls back to just-before-GTK if linuxdeploy changes that line.
+if [ -f "$APPRUN" ] && ! grep -q "KYBER_GLIBC_GATE" "$APPRUN"; then
+  python3 - "$APPRUN" <<'PYEOF'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+src = p.read_text()
+gate = (
+    '# KYBER_GLIBC_GATE - abort early on glibc < 2.38 with a clear message\n'
+    'if [ -f "$this_dir"/apprun-hooks/kyber-glibc-precheck.sh ]; then\n'
+    '    source "$this_dir"/apprun-hooks/kyber-glibc-precheck.sh || true\n'
+    'fi\n'
+)
+if 'KYBER_GLIBC_GATE' not in src:
+    anchor = 'this_dir="$(readlink -f "$(dirname "$0")")"'
+    gtk = 'source "$this_dir"/apprun-hooks/"linuxdeploy-plugin-gtk.sh"'
+    if anchor in src:
+        src = src.replace(anchor, anchor + '\n\n' + gate, 1)
+        p.write_text(src)
+    elif gtk in src:
+        src = src.replace(gtk, gate + '\n' + gtk, 1)
+        p.write_text(src)
 PYEOF
 fi
 
