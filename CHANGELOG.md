@@ -5,7 +5,7 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
-## [0.1.0-beta.6.4.8] - 2026-06-25 - Launch Stability
+## [0.1.0-beta.6.4.8] - 2026-06-25 - Steam Deck & Launch Fixes
 
 Launch reliability across the board: the launcher no longer hangs forever on a
 stuck Wine helper, no longer crashes windowless on a too-old system, no longer
