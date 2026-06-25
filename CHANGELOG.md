@@ -25,6 +25,11 @@ too-old system, and no longer refocuses over a still-loading game.
   stderr. AppRun now checks glibc first and, on a too-old system, shows a dialog
   explaining the requirement and aborts cleanly instead of crashing silently.
   Bypass with KYBER_NO_GLIBC_GATE.
+- Starting the game could crash the launcher (a panicked worker thread reporting
+  "Failed to start child") when the resolved game directory did not exist, for
+  example a custom game path pointing at a moved folder or an unmounted drive.
+  The launch now checks the game directory up front and on a spawn failure
+  returns a clear error instead of panicking.
 
 ### Changed
 
