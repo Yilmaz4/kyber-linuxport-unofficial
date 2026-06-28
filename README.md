@@ -17,8 +17,18 @@ not to upstream Kyber.
 ## Latest release
 
 The latest build is
-[v0.1.0-beta.6.4.8](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.8)
-from 2026-06-25.
+[v0.1.0-beta.6.4.9](https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/tag/v0.1.0-beta.6.4.9)
+from 2026-06-28.
+
+v0.1.0-beta.6.4.9 adds Non-Steam support. A Battlefront II copy installed
+through Lutris, the Epic Games Store, or the EA app can be launched by setting a
+custom game path; Kyber then builds its own Wine prefix instead of relying on a
+Steam prefix. The Steam path is unchanged. Proton auto-detection now also finds
+GE-Proton 11.x and proton-cachyos, and looks in Heroic and Lutris directories,
+not only Steam's. Saving a custom Proton path no longer fails with an "os error
+2" when it is set before BF2 was ever launched. The AppImage can now update
+itself: on start it checks GitHub for a newer launcher and offers to download
+and restart into it (the AUR package keeps using the package manager).
 
 v0.1.0-beta.6.4.8 hardens game launch. On the Steam Deck the launcher no longer
 hangs forever when a Wine helper call stalls (calls are now bounded, with a

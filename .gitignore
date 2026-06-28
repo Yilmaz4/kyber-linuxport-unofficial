@@ -3,6 +3,9 @@
 tools/KyberLinuxPort*.AppImage*
 tools/KyberLinuxPort.AppDir/
 tools/KyberLinuxPort.extracted/
+# Update manifest for the self-updater; regenerated per build, uploaded as a
+# release asset (not source).
+tools/latest.json
 
 # Sentry native crash-handler runtime data
 .sentry-native/

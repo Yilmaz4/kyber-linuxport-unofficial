@@ -460,6 +460,27 @@ if needle in src and 'KYBER_LIBMPV_PATH' not in src:
 PYEOF
 fi
 
+# AppImage launcher self-update endpoint (manifest JSON published as a release
+# asset). Only the AppImage build runs AppRun, so this env is absent in the AUR
+# package (which runs the extracted binary), keeping self-update off there.
+# Honors an existing value for dev overrides; empty disables the updater.
+if [ -f "$APPRUN" ] && ! grep -q "KYBER_UPDATE_URL" "$APPRUN"; then
+  python3 - "$APPRUN" <<'PYEOF'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+src = p.read_text()
+needle = '# KYBER_SELF_INSTALL_HOOK'
+inject = (
+    '# KYBER_UPDATE_URL\n'
+    'export KYBER_UPDATE_URL="${KYBER_UPDATE_URL:-https://github.com/simonlinuxcraft/kyber-linuxport-unofficial/releases/latest/download/latest.json}"\n'
+    '\n'
+)
+if needle in src and 'KYBER_UPDATE_URL' not in src:
+    src = src.replace(needle, inject + needle, 1)
+    p.write_text(src)
+PYEOF
+fi
+
 # Quiet GTK input-method warnings (IBus / GTK modules missing) that look like
 # errors on minimal/immutable systems (Steam Deck etc.) but are harmless. Only
 # fallback-set with ${:-}, so a host with a real ibus/fcitx setup keeps it.
@@ -638,7 +659,25 @@ else
 fi
 ARCH=x86_64 ./appimagetool-x86_64.AppImage --no-appstream "${RUNTIME_ARGS[@]}" "$APPDIR" "$OUTPUT"
 
+# Update manifest for the AppImage self-updater (KYBER_UPDATE_URL). Upload this
+# next to the AppImage as a release asset named latest.json. The launcher reads
+# version (Linux-port scheme from kLinuxPortVersion), download_url (stable
+# releases/latest redirect), and sha256 to verify the download.
+echo "==> Writing update manifest (latest.json)"
+PORT_VERSION="$(grep -oP "kLinuxPortVersion\s*=\s*'\K[^']+" \
+  "$REPO_ROOT/Kyber/Launcher/lib/features/settings/screens/settings_list.dart")"
+OUTPUT_SHA="$(sha256sum "$OUTPUT" | cut -d' ' -f1)"
+cat > "$TOOLS/latest.json" <<EOF
+{
+  "version": "$PORT_VERSION",
+  "download_url": "$SOURCE_URL/releases/latest/download/KyberLinuxPort-x86_64.AppImage",
+  "sha256": "$OUTPUT_SHA"
+}
+EOF
+echo "    latest.json: version=$PORT_VERSION sha256=$OUTPUT_SHA"
+
 echo
 echo "==> Done"
 echo "AppImage: $OUTPUT"
 ls -lh "$OUTPUT"
+echo "Manifest: $TOOLS/latest.json"

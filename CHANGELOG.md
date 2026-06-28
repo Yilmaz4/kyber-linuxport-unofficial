@@ -5,6 +5,39 @@ All notable changes to the Kyber Linux Port are recorded in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning tracks upstream Kyber, with port-specific patches noted separately.
 
+## [0.1.0-beta.6.4.9] - 2026-06-28 - Non-Steam Support
+
+Battlefront II no longer has to come from Steam. A copy installed through
+Lutris, the Epic Games Store, or the EA app can be launched by pointing Kyber
+at a custom game path, and Proton is now found in more places.
+
+### Added
+
+- Non-Steam launch path. When BF2 is not a Steam copy (no Steam compatdata
+  prefix exists), setting a custom game path now lets Kyber build its own Wine
+  prefix and launch the game instead of failing with "No Proton prefix found".
+  The Steam path is unchanged: a normal Steam install keeps using its existing
+  prefix, and a Steam user who simply never launched BF2 through Steam still
+  gets the "launch once through Steam" hint, so nothing regresses. Proton must
+  already be on disk; the launcher fails with a clear message rather than
+  starting a large cold download.
+- Proton auto-detection now recognises GE-Proton 11.x and proton-cachyos in
+  addition to GE-Proton 10.x, and also looks in Heroic and Lutris runner
+  directories, not only Steam's compatibilitytools.d. A newer GE-Proton is
+  preferred when several builds are present.
+- AppImage self-update. The AppImage build now checks GitHub on start and, when
+  a newer launcher version is available, offers to download and restart into it
+  (classic check / download / restart prompt). Only the launcher container
+  updates this way; mods, the Kyber module and live events keep coming from
+  Kyber. The self-update is off in the AUR package, which the package manager
+  updates.
+
+### Fixed
+
+- Saving a custom Proton path failed with "No such file or directory
+  (os error 2)" for users who set it before ever launching BF2. The Wine
+  directory is now created before the routing symlink, so the save succeeds.
+
 ## [0.1.0-beta.6.4.8] - 2026-06-25 - Steam Deck & Launch Fixes
 
 Launch reliability across the board: the launcher no longer hangs forever on a
